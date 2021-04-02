@@ -1,20 +1,38 @@
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 
-public class Compiler {
-    public static void main(String []args){
-        SymbolTable st = new SymbolTable();
-        st.get(Token.IDENTIFIER).add(new Symbol(Token.IDENTIFIER,"FRED"));
-        st.get(Token.IDENTIFIER).add(new Symbol(Token.IDENTIFIER,"IGOR"));
-        st.get(Token.IDENTIFIER).add(new Symbol(Token.IDENTIFIER,"Brenon"));
-        st.get(Token.CONST).add(new Symbol(Token.CONST,Type.BOOLEAN,"1"));
-        st.get(Token.CONST).add(new Symbol(Token.CONST,Type.CHAR,"C"));
+public class LC {
+    public static void main(String [] args) throws FileNotFoundException {
+        if(args.length == 2) {
 
-        st.entrySet()
-                .stream()
-                .sorted(Map.Entry.<Token, List<Symbol>>comparingByKey())
-                .forEach(System.out::println);
+            String sourceFilePath = args[0];
+            //String outputFilePath = args[1];
 
+            File sourceFile =  new File(sourceFilePath);;
+            //File outputFile =  new File(outputFilePath);
+
+            if (Objects.nonNull(sourceFile)) {
+
+                try {
+                    String source = Files.readString(sourceFile.toPath(), StandardCharsets.US_ASCII);
+                    Lexer lexer = new Lexer(source);
+
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+            } else {
+                System.exit(1);
+            }
+        }
 
 
 
@@ -22,10 +40,12 @@ public class Compiler {
 }
 
 
-enum Type {
-    CHAR,INT,BOOLEAN,
-}
 
+
+
+enum Type {
+    CHAR,INT,BOOLEAN;
+}
 enum Token {
     FINAL("final"),
     INTEGER("int"),
@@ -80,8 +100,8 @@ enum Token {
     public String getDescription() {
         return description;
     }
-}
 
+}
 
 
 
@@ -89,16 +109,18 @@ enum Token {
 
 class Symbol  {
 
+
+
     private Token token;
+
     private Type type;
     private String lexeme;
-
     public Symbol(){
 
     }
 
     public Symbol(Token token , String lexeme) {
-        this.token = token; 
+        this.token = token;
         this.lexeme = lexeme;
     }
 
@@ -106,6 +128,30 @@ class Symbol  {
         this.token = token;
         this.lexeme = lexeme;
         this.type = type;
+    }
+
+    public Token getToken() {
+        return token;
+    }
+
+    public void setToken(Token token) {
+        this.token = token;
+    }
+
+    public Type getType() {
+        return type;
+    }
+
+    public void setType(Type type) {
+        this.type = type;
+    }
+
+    public String getLexeme() {
+        return lexeme;
+    }
+
+    public void setLexeme(String lexeme) {
+        this.lexeme = lexeme;
     }
 
     @Override
@@ -120,8 +166,8 @@ class Symbol  {
                 " lexeme='" + lexeme + '\'' +
                 '}'  ;
     }
-}
 
+}
 class SymbolTable extends HashMap<Token,List<Symbol>>{
 
 
@@ -168,6 +214,19 @@ class SymbolTable extends HashMap<Token,List<Symbol>>{
     }
 
 
+    public Symbol searchByLexeme(String lexeme){
+        AtomicReference<Symbol> symbolToBeFound = new AtomicReference<>();
+
+        this.values().forEach( symbolList -> symbolList.forEach( symbol -> {
+            if(symbol.getLexeme().equals(lexeme)){
+                symbolToBeFound.set(symbol);
+            }
+        }));
+
+        return symbolToBeFound.get() != null ? symbolToBeFound.get() : null;
+    }
+
+
     private List<Symbol> createSymbolList(String lexeme, Token token , Type type){
         return new ArrayList(Collections.singleton(new Symbol(token, type, lexeme)));
     }
@@ -176,17 +235,49 @@ class SymbolTable extends HashMap<Token,List<Symbol>>{
         return new ArrayList(Collections.singleton(new Symbol(token, lexeme)));
     }
 
-}
 
+}
 
 
 class Lexer {
-    private static final String symbols = "!\"&'(*)+,-./:;<=>?[]_{} \n\r\t";
-    private String text;
-    private int position;
+    //String  commentRegex = "\\/\\*([\\s\\S]*?)\\*\\/";
+    //private static final String symbols = "!\"&'(*)+,-./:;<=>?[]_{} \n\r\t";
+    private char[] sourceCode;
+
+    public Lexer (String sourceCode){
+        this.sourceCode = sourceCode.toCharArray();
+    }
+
+
+    public char[] getSourceCode() {
+        return sourceCode;
+    }
 
 
 }
 
 
 
+class Tests {
+
+    public void insertAndPrint(){
+        SymbolTable st = new SymbolTable();
+        st.get(Token.IDENTIFIER).add(new Symbol(Token.IDENTIFIER,"FRED"));
+        st.get(Token.IDENTIFIER).add(new Symbol(Token.IDENTIFIER,"IGOR"));
+        st.get(Token.IDENTIFIER).add(new Symbol(Token.IDENTIFIER,"Brenon"));
+        st.get(Token.CONST).add(new Symbol(Token.CONST,Type.BOOLEAN,"1"));
+        st.get(Token.CONST).add(new Symbol(Token.CONST,Type.CHAR,"C"));
+
+        st.entrySet()
+                .stream()
+                .sorted(Map.Entry.<Token, List<Symbol>>comparingByKey())
+                .forEach(System.out::println);
+
+        Symbol sm = st.searchByLexeme("KAKA");
+
+        System.out.println(Objects.isNull(sm) ? "null" :  sm.toString());
+    }
+
+
+
+}
