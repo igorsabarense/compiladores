@@ -306,9 +306,6 @@ class Lexer {
                 case 10:
                     state10();
                     break;
-                case 11:
-                    state11();
-                    break;
                 case 12:
                     state12();
                     break;
@@ -370,12 +367,12 @@ class Lexer {
         else if (currentChar == ' ' || currentChar == '\n'){
             CURRENT_STATE = INITIAL_STATE;
         }
-        else if (AssertType.isNumeric(currentChar)){
-            CURRENT_STATE = 1;
-        }
-        else if (AssertType.isHexa(currentChar)){
-            CURRENT_STATE = 2;
-        }
+//        else if (AssertType.isNumeric(currentChar)){
+//            CURRENT_STATE = 1;
+//        }
+//        else if (AssertType.isHexa(currentChar)){
+//            CURRENT_STATE = 2;
+//        }
         else if (AssertType.isCharacter(currentChar)){
             CURRENT_STATE = 3;
         }
@@ -426,7 +423,7 @@ class Lexer {
             CURRENT_STATE = 10;
         }
         else{
-            //erroLexemaNaoEncontrado;
+            lexemeNotFound=true;
         }
 
     }
@@ -455,11 +452,8 @@ class Lexer {
     }
 
     private void state8() {
-        if(AssertType.isCharacter(currentChar)){
-            CURRENT_STATE = 11;
-        }
-        else{
-            //erroLexemaNaoEncontrado;
+        if(currentChar == '"'){
+            CURRENT_STATE = FINAL_STATE;
         }
     }
 
@@ -481,14 +475,14 @@ class Lexer {
         }
     }
 
-    private void state11() {
-        if(currentChar == '"'){
-            CURRENT_STATE = FINAL_STATE;
-        }
-        else{
-            //erroLexemaNaoEncontrado;
-        }
-    }
+//    private void state11() {
+//        if(currentChar == '"'){
+//            CURRENT_STATE = FINAL_STATE;
+//        }
+//        else{
+//            lexemeNotFound = true;
+//        }
+//    }
 
     private void state12(){
     }
@@ -573,5 +567,3 @@ class AssertType {
         return isCharacter(c) || isNumeric(c) ;
     }
 }
-
-
