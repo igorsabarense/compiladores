@@ -9,21 +9,24 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class LC {
     public static void main(String [] args) throws FileNotFoundException {
-        
+
 
         if(args.length == 2) {
 
             String sourceFilePath = args[0];
             //String outputFilePath = args[1];
 
-            File sourceFile =  new File(sourceFilePath);;
+            File sourceFile =  new File(sourceFilePath);
             //File outputFile =  new File(outputFilePath);
 
             if (Objects.nonNull(sourceFile)) {
 
                 try {
                     String source = Files.readString(sourceFile.toPath(), StandardCharsets.US_ASCII);
+
                     Lexer lexer = new Lexer(source);
+                    lexer.lexicalAnalysis();
+
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -45,7 +48,7 @@ enum Type {
 }
 enum Token {
     FINAL("final"),
-    INTEGER("int"),
+    INT("int"),
     CHAR("char"),
     FOR("for"),
     IF("if"),
@@ -159,9 +162,9 @@ class Symbol  {
                 ", lexeme='" + lexeme + '\'' +
                 '}' :
                 "Symbol{" +
-                "token=" + token +
-                " lexeme='" + lexeme + '\'' +
-                '}'  ;
+                        "token=" + token +
+                        " lexeme='" + lexeme + '\'' +
+                        '}'  ;
     }
 
 }
@@ -170,13 +173,13 @@ class SymbolTable extends HashSet<Symbol>{
 
     public SymbolTable(){
         this.add(new Symbol("final",Token.FINAL));
-        this.add(new Symbol("integer",Token.INTEGER));
+        this.add(new Symbol("int",Token.INT));
         this.add(new Symbol("char",Token.CHAR));
         this.add(new Symbol("for",Token.FOR));
         this.add(new Symbol("if",Token.IF));
         this.add(new Symbol("else",Token.ELSE));
-        this.add(new Symbol("TRUE",Token.TRUE));
-        this.add(new Symbol("FALSE",Token.FALSE));
+        this.add(new Symbol(Token.TRUE, Type.BOOLEAN, "TRUE"));
+        this.add(new Symbol(Token.FALSE, Type.BOOLEAN, "FALSE"));
         this.add(new Symbol("and",Token.AND));
         this.add(new Symbol("or",Token.OR));
         this.add(new Symbol("not",Token.NOT));
@@ -210,7 +213,7 @@ class SymbolTable extends HashSet<Symbol>{
 
 
     public Symbol searchByLexeme(String lexeme){
-        AtomicReference<Symbol> symbolToBeFound = null;
+        AtomicReference<Symbol> symbolToBeFound = new AtomicReference<>();
 
         this.forEach( symbol -> {
             if(lexeme.equals(symbol.getLexeme())){
@@ -226,9 +229,10 @@ class SymbolTable extends HashSet<Symbol>{
 
 class Lexer {
 
-    private SymbolTable symbolTable;
+    private Symbol symbol = null;
+    private SymbolTable symbolTable = new SymbolTable();
     private String symbols = "=.(),+-*;{}%[]";
-    private String lexeme;
+    private String lexeme = "";
 
     private char[] sourceCode;
     private char currentChar = ' ';
@@ -240,13 +244,13 @@ class Lexer {
 
     private int lines = 0;
     private int index = 0;
-    private final boolean EOF = index >= sourceCode.length;
+    private final char EOF = (char) -1;
 
     private boolean lexemeNotFound = false;
 
 
     public Lexer (String sourceCode){
-        this.sourceCode = sourceCode.toCharArray();
+         this.sourceCode = sourceCode.replaceAll("\r\n","\n").toCharArray();
     }
 
 
@@ -255,73 +259,252 @@ class Lexer {
     }
 
     public void lexicalAnalysis(){
+        symbol = null;
+        lexeme = "";
 
-        int sourceCodeLength = this.sourceCode.length-1;
+        while (CURRENT_STATE != FINAL_STATE && !lexemeNotFound && index < this.sourceCode.length){
 
-        while (index <= sourceCodeLength){
-
-
-
-                switch (CURRENT_STATE) {
-                    case INITIAL_STATE:
-                        initialState();
-                        break;
-
-                    default:
-                        throw new IllegalStateException("Unexpected value: " + CURRENT_STATE);
-                }
-
-            if (currentChar != EOF && previousChar == null && currentChar != '\n' && currentChar != ' ') {
+            readCharacter();
+            switch (CURRENT_STATE) {
+                case 0:
+                    initialState();
+                    break;
+                case 1:
+                    state1();
+                    break;
+                case 2:
+                    state2();
+                    break;
+                case 3:
+                    state3();
+                    break;
+                case 4:
+                    state4();
+                    break;
+                case 5:
+                    state5();
+                    break;
+                case 6:
+                    state6();
+                    break;
+                case 7:
+                    state7();
+                    break;
+                case 8:
+                    state8();
+                    break;
+                case 9:
+                    state9();
+                    break;
+                case 10:
+                    state10();
+                    break;
+                case 11:
+                    state11();
+                    break;
+                case 12:
+                    state12();
+                    break;
+                case 13:
+                    state13();
+                    break;
+                case 14:
+                    state14();
+                    break;
+                case 15:
+                    state15();
+                    break;
+                case 16:
+                    state16();
+                    break;
+                case 17:
+                    state17();
+                    break;
+            }
+            if (  currentChar != EOF && previousChar == null && currentChar != '\n' && currentChar != ' ') {
                 lexeme = lexeme.concat(currentChar + "");
             }
 
-        }
-    }
 
-    private char s0() {
-        index++;
-        if(this.sourceCode[index] == '*'){
-            currentChar = sourceCode[index];
-            commentState0(currentChar, index);
-        }else{
 
         }
+
+        System.out.println(lexeme);
+
+        Symbol symbolFromTable = symbolTable.searchByLexeme(lexeme);
+
+        if(symbolFromTable == null){
+            System.out.println("not found");
+        }else {
+            System.out.println("ok");
+        }
+
     }
+
+
 
     private void initialState(){
-       if(checkSymbols(currentChar)){
-           CURRENT_STATE = FINAL_STATE;
-       }
-       else if (currentChar == ' '){
-           CURRENT_STATE = INITIAL_STATE;
-       }
-        else if (currentChar.isNumeric()){
-           CURRENT_STATE = 1;
-       }
-        else if (currentChar == '0'){
+        if(checkSymbols(currentChar)){
+            CURRENT_STATE = FINAL_STATE;
+        }
+        else if (currentChar == ' ' || currentChar == '\n'){
+            CURRENT_STATE = INITIAL_STATE;
+        }
+        else if (AssertType.isNumeric(currentChar)){
+            CURRENT_STATE = 1;
+        }
+        else if (AssertType.isHexa(currentChar)){
             CURRENT_STATE = 2;
-       }
-        else if (currentChar >= 'a' && currentChar <= 'Z'){
+        }
+        else if (AssertType.isCharacter(currentChar)){
             CURRENT_STATE = 3;
-       }
+        }
         else if (currentChar =='_'){
             CURRENT_STATE = 4;
-       }
-
-        else if (currentChar == '>' && currentChar == '='){
+        }
+        else if (currentChar == '>'){
             CURRENT_STATE = 5;
-       }
-
-        else if (currentChar == '\''){
+        }
+        else if (currentChar == ':'){
             CURRENT_STATE = 6;
-       }
-        else{
-
-       }
+        }
+        else if (currentChar == '<'){
+            CURRENT_STATE = 7;
+        }
+        else if (currentChar == '"'){
+            CURRENT_STATE = 8;
+        }
+        else if (currentChar == '/'){
+            CURRENT_STATE = 9;
+        }
     }
 
+    private void state1() {
+
+        symbol.setType(Type.INT);
+        returnChar();
+    }
+
+    private void state2() {
+    }
+
+    private void state3() {
+        if(AssertType.isCharacter(currentChar) || AssertType.isNumeric(currentChar) || currentChar == '_' ){
+            CURRENT_STATE = 3;
+        }
+        else{
+            returnChar();
+        }
+    }
+
+    private void state4() {
+        if (currentChar == '_'){
+            CURRENT_STATE = 4;
+        }
+        else if(AssertType.isCharacter(currentChar) || AssertType.isNumeric(currentChar)){
+            CURRENT_STATE = 10;
+        }
+        else{
+            //erroLexemaNaoEncontrado;
+        }
+
+    }
+
+    private void state5() {
+        if(currentChar == '='){
+            CURRENT_STATE = FINAL_STATE;
+        }
+        else {
+            returnChar();
+        }
+    }
+
+    private void state6() {
+        if(currentChar == '='){
+            CURRENT_STATE = FINAL_STATE;
+        }
+        lexemeNotFound = true;
+    }
+
+    private void state7() {
+        if(currentChar == '=' || currentChar == '>'){
+            CURRENT_STATE = FINAL_STATE;
+        }
+        lexemeNotFound = true;
+    }
+
+    private void state8() {
+        if(AssertType.isCharacter(currentChar)){
+            CURRENT_STATE = 11;
+        }
+        else{
+            //erroLexemaNaoEncontrado;
+        }
+    }
+
+    private void state9() {
+        if(currentChar == '*'){
+            CURRENT_STATE = 16;
+        }else{
+            returnChar();
+        }
+
+    }
+
+    private void state10() {
+        if(AssertType.isNumeric(currentChar) || AssertType.isCharacter(currentChar)|| currentChar == '_'){
+            CURRENT_STATE = 10;
+        }
+        else{
+            returnChar();
+        }
+    }
+
+    private void state11() {
+        if(currentChar == '"'){
+            CURRENT_STATE = FINAL_STATE;
+        }
+        else{
+            //erroLexemaNaoEncontrado;
+        }
+    }
+
+    private void state12(){
+    }
+
+    private void state13() {
+    }
+
+    private void state14() {
+    }
+
+    private void state15() {
+    }
+
+    private void state16() {
+        if(currentChar == '*'){
+            CURRENT_STATE = 17;
+        }else{
+            CURRENT_STATE = 16;
+        }
+    }
+
+    private void state17() {
+        if(currentChar != '/'){
+            CURRENT_STATE = 16;
+        }else{
+            CURRENT_STATE = INITIAL_STATE;
+            lexeme = "";
+            readCharacter();
+
+        }
+
+    }
+
+
+
     private boolean checkSymbols(char currentChar) {
-        StringBuilder str = new StringBuilder(currentChar);
+        String str = String.valueOf(currentChar);
         if(symbols.contains(str.toString())){
             return true;
         }
@@ -329,27 +512,18 @@ class Lexer {
 
     }
 
-    private char commentState0(Character currentChar) {
-        return 'c';
-    }
 
+    private void readCharacter() {
 
-    private char getCurrentChar(){
-        return index < sourceCode.length ? sourceCode[index] : ' ';
-    }
-
-
-    private void readChar() {
-
-            if (previousChar == null) {
-                currentChar = sourceCode[index];
-                if (currentChar == '\n') {
-                    lines++;
-                }
-            } else {
-                currentChar = previousChar;
-                previousChar = null;
+        if (previousChar == null) {
+            currentChar = sourceCode[index++];
+            if (currentChar == '\n') {
+                lines++;
             }
+        } else {
+            currentChar = previousChar;
+            previousChar = null;
+        }
 
     }
 
@@ -361,5 +535,22 @@ class Lexer {
 
 }
 
+
+class AssertType {
+    public static final char EOF = (char)-1;
+
+    public static boolean isCharacter(char c) {
+        return (c >= 'a' && c <= 'z') || (c >='A' && c <='Z');
+    }
+    public static boolean isNumeric(char c) {
+        return (c >= '0' && c <= '9');
+    }
+    public static boolean isHexa(char c) {
+        return (isNumeric(c)) || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
+    }
+    public static boolean isValidChar(char c) {
+        return isCharacter(c) || isNumeric(c) ;
+    }
+}
 
 
