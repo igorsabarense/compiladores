@@ -165,6 +165,7 @@ class Symbol  {
     }
 
 }
+
 class SymbolTable extends HashSet<Symbol>{
 
     public SymbolTable(){
@@ -223,15 +224,25 @@ class SymbolTable extends HashSet<Symbol>{
 
 }
 
-
 class Lexer {
 
-    private char[] sourceCode;
-    private char[] lexeme;
-    private final  Byte INITIAL_STATE = 0;
-    private Byte CURRENT_STATE = null;
-    private final  Byte FINAL_STATE = null;
+    private SymbolTable symbolTable;
+    private String symbols = "=.(),+-*;{}%[]";
+    private String lexeme;
 
+    private char[] sourceCode;
+    private char currentChar = ' ';
+    private Character previousChar = null;
+
+    private Byte INITIAL_STATE = 0;
+    private Byte CURRENT_STATE = 0;
+    private Byte FINAL_STATE = 127;
+
+    private int lines = 0;
+    private int index = 0;
+    private final boolean EOF = index >= sourceCode.length;
+
+    private boolean lexemeNotFound = false;
 
 
     public Lexer (String sourceCode){
@@ -241,6 +252,114 @@ class Lexer {
 
     public char[] getSourceCode() {
         return sourceCode;
+    }
+
+    public void lexicalAnalysis(){
+
+        int sourceCodeLength = this.sourceCode.length-1;
+
+        while (index <= sourceCodeLength){
+
+
+
+                switch (CURRENT_STATE) {
+                    case INITIAL_STATE:
+                        initialState();
+                        break;
+
+                    default:
+                        throw new IllegalStateException("Unexpected value: " + CURRENT_STATE);
+                }
+
+            if (currentChar != EOF && previousChar == null && currentChar != '\n' && currentChar != ' ') {
+                lexeme = lexeme.concat(currentChar + "");
+            }
+
+        }
+    }
+
+    private char s0() {
+        index++;
+        if(this.sourceCode[index] == '*'){
+            currentChar = sourceCode[index];
+            commentState0(currentChar, index);
+        }else{
+
+        }
+    }
+
+    private void initialState(){
+       if(checkSymbols(currentChar)){
+           CURRENT_STATE = FINAL_STATE;
+       }
+       else if (currentChar == ' '){
+           CURRENT_STATE = INITIAL_STATE;
+       }
+        else if (currentChar.isNumeric()){
+           CURRENT_STATE = 1;
+       }
+        else if (currentChar = '0'){
+            CURRENT_STATE = 2;
+       }
+        else if (currentChar >= 'a' && currentChar <= 'Z'){
+            CURRENT_STATE = 3;
+       }
+        else if (currentChar =='_'){
+            CURRENT_STATE = 4;
+       }
+        else if (){
+
+       }
+        else if (currentChar = '>'currentChar = '>'currentChar){
+            CURRENT_STATE = 5;            CURRENT_STATE =
+       }
+        else if (){<
+ 96;
+       }
+        else if (currentChar == '\''){
+            CURRENT_STATE
+       }
+        else{
+
+       }
+    }
+
+    private boolean checkSymbols(char currentChar) {
+        StringBuilder str = new StringBuilder(currentChar);
+        if(symbols.contains(str.toString())){
+            return true;
+        }
+        return false;
+
+    }
+
+    private char commentState0(Character currentChar) {
+        return 'c';
+    }
+
+
+    private char getCurrentChar(){
+        return index < sourceCode.length ? sourceCode[index] : ' ';
+    }
+
+
+    private void readChar() {
+
+            if (previousChar == null) {
+                currentChar = sourceCode[index];
+                if (currentChar == '\n') {
+                    lines++;
+                }
+            } else {
+                currentChar = previousChar;
+                previousChar = null;
+            }
+
+    }
+
+    private void returnChar () {
+        previousChar = currentChar;
+        CURRENT_STATE = FINAL_STATE;
     }
 
 
