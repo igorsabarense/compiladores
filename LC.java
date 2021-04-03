@@ -25,7 +25,7 @@ public class LC {
                     String source = Files.readString(sourceFile.toPath(), StandardCharsets.US_ASCII);
 
                     Lexer lexer = new Lexer(source);
-                    lexer.lexicalAnalysis();
+                    while ( lexer.lexicalAnalysis() != null ) ;
 
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -229,10 +229,17 @@ class SymbolTable extends HashSet<Symbol>{
 
 class Lexer {
 
-    private Symbol symbol = null;
+
+
     private SymbolTable symbolTable = new SymbolTable();
     private String symbols = "=.(),+-*;{}%[]";
+
+
+    //Symbol creation;
     private String lexeme = "";
+    private Type type;
+    private Token token;
+
 
     private char[] sourceCode;
     private char currentChar = ' ';
@@ -243,14 +250,15 @@ class Lexer {
     private Byte FINAL_STATE = 127;
 
     private int lines = 0;
-    private int index = 0;
+    private int index;
     private final char EOF = (char) -1;
 
     private boolean lexemeNotFound = false;
 
 
     public Lexer (String sourceCode){
-         this.sourceCode = sourceCode.replaceAll("\r\n","\n").toCharArray();
+         this.sourceCode = sourceCode.stripTrailing().replaceAll("\r\n","\n").toCharArray();
+         this.index = 0 ;
     }
 
 
@@ -258,9 +266,8 @@ class Lexer {
         return sourceCode;
     }
 
-    public void lexicalAnalysis(){
-        symbol = null;
-        lexeme = "";
+    public Symbol lexicalAnalysis(){
+        Symbol symbol = new Symbol();
 
         while (CURRENT_STATE != FINAL_STATE && !lexemeNotFound && index < this.sourceCode.length){
 
@@ -322,22 +329,35 @@ class Lexer {
                     break;
             }
             if (  currentChar != EOF && previousChar == null && currentChar != '\n' && currentChar != ' ') {
-                lexeme = lexeme.concat(currentChar + "");
+                lexeme = lexeme.concat(String.valueOf(currentChar));
             }
 
 
 
         }
 
+
         System.out.println(lexeme);
 
         Symbol symbolFromTable = symbolTable.searchByLexeme(lexeme);
 
+
         if(symbolFromTable == null){
-            System.out.println("not found");
+            symbol.setLexeme(lexeme);
+            if(type != null) symbol.setType(type);
+            symbol.setToken(token);
+            symbolTable.add(symbol);
         }else {
             System.out.println("ok");
+            symbol = symbolFromTable;
         }
+
+        CURRENT_STATE = INITIAL_STATE;
+        lexeme = "";
+        token = null;
+        return index <= sourceCode.length  ? symbol : null;
+
+
 
     }
 
@@ -380,9 +400,9 @@ class Lexer {
     }
 
     private void state1() {
-
-        symbol.setType(Type.INT);
-        returnChar();
+//
+//        symbol.setType(Type.INT);
+//        returnChar();
     }
 
     private void state2() {
@@ -393,7 +413,8 @@ class Lexer {
             CURRENT_STATE = 3;
         }
         else{
-            returnChar();
+           token = Token.IDENTIFIER;
+           returnChar();
         }
     }
 
