@@ -1,5 +1,4 @@
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -10,6 +9,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class LC {
     public static void main(String [] args) throws FileNotFoundException {
+        
+
         if(args.length == 2) {
 
             String sourceFilePath = args[0];
@@ -23,8 +24,6 @@ public class LC {
                 try {
                     String source = Files.readString(sourceFile.toPath(), StandardCharsets.US_ASCII);
                     Lexer lexer = new Lexer(source);
-
-
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -33,8 +32,6 @@ public class LC {
                 System.exit(1);
             }
         }
-
-
 
     }
 }
@@ -112,14 +109,14 @@ class Symbol  {
 
 
     private Token token;
-
     private Type type;
     private String lexeme;
+
     public Symbol(){
 
     }
 
-    public Symbol(Token token , String lexeme) {
+    public Symbol( String lexeme, Token token ) {
         this.token = token;
         this.lexeme = lexeme;
     }
@@ -168,71 +165,59 @@ class Symbol  {
     }
 
 }
-class SymbolTable extends HashMap<Token,List<Symbol>>{
-
+class SymbolTable extends HashSet<Symbol>{
 
     public SymbolTable(){
+        this.add(new Symbol("final",Token.FINAL));
+        this.add(new Symbol("integer",Token.INTEGER));
+        this.add(new Symbol("char",Token.CHAR));
+        this.add(new Symbol("for",Token.FOR));
+        this.add(new Symbol("if",Token.IF));
+        this.add(new Symbol("else",Token.ELSE));
+        this.add(new Symbol("TRUE",Token.TRUE));
+        this.add(new Symbol("FALSE",Token.FALSE));
+        this.add(new Symbol("and",Token.AND));
+        this.add(new Symbol("or",Token.OR));
+        this.add(new Symbol("not",Token.NOT));
+        this.add(new Symbol(":=",Token.ATTRIBUTION));
+        this.add(new Symbol("=",Token.EQUAL));
+        this.add(new Symbol("(",Token.OPENING_PARENTHESIS));
+        this.add(new Symbol(")",Token.CLOSING_PARENTHESIS));
+        this.add(new Symbol("<",Token.LT));
+        this.add(new Symbol(">",Token.GT));
+        this.add(new Symbol("<>",Token.NOT_EQUAL));
+        this.add(new Symbol(">=",Token.GTOE));
+        this.add(new Symbol("<=",Token.LTOE));
+        this.add(new Symbol(",",Token.COMMA));
+        this.add(new Symbol("+",Token.PLUS_SIGN));
+        this.add(new Symbol("-",Token.MINUS_SIGN));
+        this.add(new Symbol("*",Token.ASTERISK));
+        this.add(new Symbol("/",Token.SLASH));
+        this.add(new Symbol(";",Token.SEMICOLON));
+        this.add(new Symbol("{",Token.OPENING_BRACES));
+        this.add(new Symbol("}",Token.CLOSING_BRACES));
+        this.add(new Symbol("then",Token.THEN));
+        this.add(new Symbol("readln",Token.READLN));
+        this.add(new Symbol("write",Token.WRITE));
+        this.add(new Symbol("writeln",Token.WRITELN));
+        this.add(new Symbol("%",Token.PERCENTAGE));
+        this.add(new Symbol("[",Token.OPENING_BRACKETS));
+        this.add(new Symbol("]", Token.CLOSING_BRACKETS));
+        this.add(new Symbol("main",Token.MAIN));
 
-        this.put(Token.FINAL, createSymbolList("final",Token.FINAL));
-        this.put(Token.INTEGER,createSymbolList("integer",Token.INTEGER));
-        this.put(Token.CHAR,createSymbolList("char",Token.CHAR));
-        this.put(Token.FOR,createSymbolList("for",Token.FOR));
-        this.put(Token.IF,createSymbolList("if",Token.IF));
-        this.put(Token.ELSE,createSymbolList("else",Token.ELSE));
-        this.put(Token.TRUE,createSymbolList("TRUE",Token.TRUE));
-        this.put(Token.FALSE,createSymbolList("FALSE",Token.FALSE));
-        this.put(Token.AND,createSymbolList("and",Token.AND));
-        this.put(Token.OR,createSymbolList("or",Token.OR));
-        this.put(Token.NOT,createSymbolList("not",Token.NOT));
-        this.put(Token.ATTRIBUTION,createSymbolList(":=",Token.ATTRIBUTION));
-        this.put(Token.EQUAL,createSymbolList("=",Token.EQUAL));
-        this.put(Token.OPENING_PARENTHESIS,createSymbolList("(",Token.OPENING_PARENTHESIS));
-        this.put(Token.CLOSING_PARENTHESIS,createSymbolList(")",Token.CLOSING_PARENTHESIS));
-        this.put(Token.LT,createSymbolList("<",Token.LT));
-        this.put(Token.GT,createSymbolList(">",Token.GT));
-        this.put(Token.NOT_EQUAL,createSymbolList("<>",Token.NOT_EQUAL));
-        this.put(Token.GTOE ,createSymbolList(">=",Token.GTOE));
-        this.put(Token.LTOE ,createSymbolList("<=",Token.LTOE));
-        this.put(Token.COMMA,createSymbolList(",",Token.COMMA));
-        this.put(Token.PLUS_SIGN,createSymbolList("+",Token.PLUS_SIGN));
-        this.put(Token.MINUS_SIGN,createSymbolList("-",Token.MINUS_SIGN));
-        this.put(Token.ASTERISK,createSymbolList("*",Token.ASTERISK));
-        this.put(Token.SLASH,createSymbolList("/",Token.SLASH));
-        this.put(Token.SEMICOLON,createSymbolList(";",Token.SEMICOLON));
-        this.put(Token.OPENING_BRACES,createSymbolList("{",Token.OPENING_BRACES));
-        this.put(Token.CLOSING_BRACES,createSymbolList("}",Token.CLOSING_BRACES));
-        this.put(Token.THEN ,createSymbolList("then",Token.THEN));
-        this.put(Token.READLN,createSymbolList("readln",Token.READLN));
-        this.put(Token.WRITE ,createSymbolList("write",Token.WRITE));
-        this.put(Token.WRITELN ,createSymbolList("writeln",Token.WRITELN));
-        this.put(Token.PERCENTAGE,createSymbolList("%",Token.PERCENTAGE));
-        this.put(Token.OPENING_BRACKETS,createSymbolList("[",Token.OPENING_BRACKETS));
-        this.put(Token.CLOSING_BRACKETS,createSymbolList("]", Token.CLOSING_BRACKETS));
-        this.put(Token.MAIN,createSymbolList("main",Token.MAIN));
-        this.put(Token.IDENTIFIER , new ArrayList<>());
-        this.put(Token.CONST , new ArrayList<>());
     }
 
 
     public Symbol searchByLexeme(String lexeme){
-        AtomicReference<Symbol> symbolToBeFound = new AtomicReference<>();
+        AtomicReference<Symbol> symbolToBeFound = null;
 
-        this.values().forEach( symbolList -> symbolList.forEach( symbol -> {
-            if(symbol.getLexeme().equals(lexeme)){
+        this.forEach( symbol -> {
+            if(lexeme.equals(symbol.getLexeme())){
                 symbolToBeFound.set(symbol);
             }
-        }));
+        });
 
         return symbolToBeFound.get() != null ? symbolToBeFound.get() : null;
-    }
-
-
-    private List<Symbol> createSymbolList(String lexeme, Token token , Type type){
-        return new ArrayList(Collections.singleton(new Symbol(token, type, lexeme)));
-    }
-
-    private List<Symbol> createSymbolList(String lexeme, Token token ){
-        return new ArrayList(Collections.singleton(new Symbol(token, lexeme)));
     }
 
 
@@ -240,9 +225,14 @@ class SymbolTable extends HashMap<Token,List<Symbol>>{
 
 
 class Lexer {
-    //String  commentRegex = "\\/\\*([\\s\\S]*?)\\*\\/";
-    //private static final String symbols = "!\"&'(*)+,-./:;<=>?[]_{} \n\r\t";
+
     private char[] sourceCode;
+    private char[] lexeme;
+    private final  Byte INITIAL_STATE = 0;
+    private Byte CURRENT_STATE = null;
+    private final  Byte FINAL_STATE = null;
+
+
 
     public Lexer (String sourceCode){
         this.sourceCode = sourceCode.toCharArray();
@@ -258,26 +248,3 @@ class Lexer {
 
 
 
-class Tests {
-
-    public void insertAndPrint(){
-        SymbolTable st = new SymbolTable();
-        st.get(Token.IDENTIFIER).add(new Symbol(Token.IDENTIFIER,"FRED"));
-        st.get(Token.IDENTIFIER).add(new Symbol(Token.IDENTIFIER,"IGOR"));
-        st.get(Token.IDENTIFIER).add(new Symbol(Token.IDENTIFIER,"Brenon"));
-        st.get(Token.CONST).add(new Symbol(Token.CONST,Type.BOOLEAN,"1"));
-        st.get(Token.CONST).add(new Symbol(Token.CONST,Type.CHAR,"C"));
-
-        st.entrySet()
-                .stream()
-                .sorted(Map.Entry.<Token, List<Symbol>>comparingByKey())
-                .forEach(System.out::println);
-
-        Symbol sm = st.searchByLexeme("KAKA");
-
-        System.out.println(Objects.isNull(sm) ? "null" :  sm.toString());
-    }
-
-
-
-}
