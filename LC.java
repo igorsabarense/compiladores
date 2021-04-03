@@ -298,7 +298,7 @@ class Lexer {
         else if (currentChar.isNumeric()){
            CURRENT_STATE = 1;
        }
-        else if (currentChar = '0'){
+        else if (currentChar == '0'){
             CURRENT_STATE = 2;
        }
         else if (currentChar >= 'a' && currentChar <= 'Z'){
@@ -307,17 +307,13 @@ class Lexer {
         else if (currentChar =='_'){
             CURRENT_STATE = 4;
        }
-        else if (){
 
+        else if (currentChar == '>' && currentChar == '='){
+            CURRENT_STATE = 5;
        }
-        else if (currentChar = '>'currentChar = '>'currentChar){
-            CURRENT_STATE = 5;            CURRENT_STATE =
-       }
-        else if (){<
- 96;
-       }
+
         else if (currentChar == '\''){
-            CURRENT_STATE
+            CURRENT_STATE = 6;
        }
         else{
 
