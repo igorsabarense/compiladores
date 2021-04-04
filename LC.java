@@ -1,10 +1,13 @@
     import java.io.File;
     import java.io.FileNotFoundException;
     import java.io.IOException;
+    import java.nio.charset.StandardCharsets;
     import java.nio.file.Files;
+    import java.nio.file.Paths;
     import java.util.*;
     import java.util.concurrent.atomic.AtomicReference;
     import java.util.regex.*;
+    import java.util.stream.Stream;
 
     public class LC {
         public static void main(String [] args) throws FileNotFoundException {
@@ -12,25 +15,37 @@
             if(args.length == 2) {
                 String sourceFilePath = args[0];
                 //String outputFilePath = args[1];
-                File sourceFile =  new File(sourceFilePath);
+               // File sourceFile =  new File(sourceFilePath);
                 //File outputFile =  new File(outputFilePath);
-                if (Objects.nonNull(sourceFile)) {
-                    try {
-                        String source = Files.readString(sourceFile.toPath());
+                if (Objects.nonNull(sourceFilePath)) {
+                    String source = readLineByLineJava8(sourceFilePath);
 
-                        Lexer lexer = new Lexer(source);
-                        while(lexer.lexicalAnalysis() != null);
-                        System.out.printf("%d linhas compiladas.", lexer.getLines());
+                    Lexer lexer = new Lexer(source);
+                    while(lexer.lexicalAnalysis() != null);
+                    System.out.printf("%d linhas compiladas.", lexer.getLines()+1);
                     //   lexer.printSymbolTableLexer();
 
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
                 }
                 else {
                     System.exit(1);
                 }
             }
+        }
+
+        public static String readLineByLineJava8(String filePath)
+        {
+            StringBuilder contentBuilder = new StringBuilder();
+
+            try (Stream<String> stream = Files.lines( Paths.get(filePath), StandardCharsets.UTF_8))
+            {
+                stream.forEach(s -> contentBuilder.append(s).append("\n"));
+            }
+            catch (IOException e)
+            {
+                e.printStackTrace();
+            }
+
+            return contentBuilder.toString();
         }
     }
 
@@ -332,18 +347,17 @@
             }
 
             
-                Symbol symbolFromTable = symbolTable.searchByLexeme(lexeme);
+            Symbol symbolFromTable = symbolTable.searchByLexeme(lexeme);
 
-                if(symbolFromTable == null && !lexeme.isBlank()){
-                    symbol.setLexeme(lexeme);
-                    if(type != null) symbol.setType(type);
-                    symbol.setToken(token);
-                    symbolTable.add(symbol);
-                }
-                else {
-                    symbol = symbolFromTable;
-                }
-
+            if(symbolFromTable == null && !lexeme.equals("")){
+               symbol.setLexeme(lexeme);
+               if(type != null) symbol.setType(type);
+               symbol.setToken(token);
+               symbolTable.add(symbol);
+            }
+            else {
+               symbol = symbolFromTable;
+            }
 
             return  symbol;
         }
