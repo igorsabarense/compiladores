@@ -306,6 +306,9 @@ class Lexer {
                 case 10:
                     state10();
                     break;
+                case 11:
+                    state11();
+                    break;
                 case 12:
                     state12();
                     break;
@@ -324,6 +327,7 @@ class Lexer {
                 case 17:
                     state17();
                     break;
+
             }
             if (  currentChar != EOF && previousChar == null && currentChar != '\n' && currentChar != ' ') {
                 lexeme = lexeme.concat(String.valueOf(currentChar));
@@ -367,12 +371,12 @@ class Lexer {
         else if (currentChar == ' ' || currentChar == '\n'){
             CURRENT_STATE = INITIAL_STATE;
         }
-//        else if (AssertType.isNumeric(currentChar)){
-//            CURRENT_STATE = 1;
-//        }
-//        else if (AssertType.isHexa(currentChar)){
-//            CURRENT_STATE = 2;
-//        }
+        else if (AssertType.isNumericNotZero(currentChar)){
+            CURRENT_STATE = 1;
+        }
+        else if (currentChar == '0'){
+            CURRENT_STATE = 2;
+        }
         else if (AssertType.isCharacter(currentChar)){
             CURRENT_STATE = 3;
         }
@@ -388,21 +392,28 @@ class Lexer {
         else if (currentChar == '<'){
             CURRENT_STATE = 7;
         }
-        else if (currentChar == '"'){
+        else if (currentChar == '\''){
             CURRENT_STATE = 8;
         }
         else if (currentChar == '/'){
             CURRENT_STATE = 9;
+        }else if (currentChar == '"'){
+            CURRENT_STATE = 10;
         }
     }
 
     private void state1() {
-//
-//        symbol.setType(Type.INT);
-//        returnChar();
+        if(!AssertType.isNumeric(currentChar)){
+            returnChar();
+        }else{
+            CURRENT_STATE = 1;
+        }
     }
 
     private void state2() {
+        if(AssertType.isNumeric(currentChar)){
+            CURRENT_STATE = 12;
+        }
     }
 
     private void state3() {
@@ -420,7 +431,7 @@ class Lexer {
             CURRENT_STATE = 4;
         }
         else if(AssertType.isCharacter(currentChar) || AssertType.isNumeric(currentChar)){
-            CURRENT_STATE = 10;
+            CURRENT_STATE = 15;
         }
         else{
             lexemeNotFound=true;
@@ -452,8 +463,8 @@ class Lexer {
     }
 
     private void state8() {
-        if(currentChar == '"'){
-            CURRENT_STATE = FINAL_STATE;
+        if(AssertType.isCharacter(currentChar) || AssertType.isNumeric(currentChar)){
+            CURRENT_STATE = 11;
         }
     }
 
@@ -467,22 +478,25 @@ class Lexer {
     }
 
     private void state10() {
-        if(AssertType.isNumeric(currentChar) || AssertType.isCharacter(currentChar)|| currentChar == '_'){
+
+
+        if(currentChar != '$' && currentChar != '\n' && currentChar != '"' ){
             CURRENT_STATE = 10;
-        }
-        else{
-            returnChar();
+        }else if(currentChar == '"'){
+            CURRENT_STATE = FINAL_STATE;
+        }else{
+            lexemeNotFound = true;
         }
     }
 
-//    private void state11() {
-//        if(currentChar == '"'){
-//            CURRENT_STATE = FINAL_STATE;
-//        }
-//        else{
-//            lexemeNotFound = true;
-//        }
-//    }
+    private void state11() {
+        if(currentChar == '\''){
+            CURRENT_STATE = FINAL_STATE;
+        }
+        else{
+            lexemeNotFound = true;
+        }
+    }
 
     private void state12(){
     }
@@ -493,7 +507,15 @@ class Lexer {
     private void state14() {
     }
 
+
+
     private void state15() {
+        if(AssertType.isNumeric(currentChar) || AssertType.isCharacter(currentChar)|| currentChar == '_'){
+            CURRENT_STATE = 15;
+        }
+        else{
+            returnChar();
+        }
     }
 
     private void state16() {
@@ -515,6 +537,17 @@ class Lexer {
         }
 
     }
+
+    private void state18(){
+    }
+
+    private void state19() {
+    }
+
+    private void state20() {
+    }
+
+
 
 
 
@@ -556,6 +589,9 @@ class AssertType {
 
     public static boolean isCharacter(char c) {
         return (c >= 'a' && c <= 'z') || (c >='A' && c <='Z');
+    }
+    public static boolean isNumericNotZero(char c) {
+        return (c >= '1' && c <= '9');
     }
     public static boolean isNumeric(char c) {
         return (c >= '0' && c <= '9');
