@@ -1,15 +1,14 @@
     import java.io.File;
     import java.io.FileNotFoundException;
     import java.io.IOException;
-    import java.nio.charset.StandardCharsets;
     import java.nio.file.Files;
     import java.util.*;
     import java.util.concurrent.atomic.AtomicReference;
-
+    import java.util.regex.*;
 
     public class LC {
         public static void main(String [] args) throws FileNotFoundException {
-
+            
             if(args.length == 2) {
                 String sourceFilePath = args[0];
                 //String outputFilePath = args[1];
@@ -17,10 +16,10 @@
                 //File outputFile =  new File(outputFilePath);
                 if (Objects.nonNull(sourceFile)) {
                     try {
-                        String source = Files.readString(sourceFile.toPath(), StandardCharsets.US_ASCII);
+                        String source = Files.readString(sourceFile.toPath());
 
                         Lexer lexer = new Lexer(source);
-                        while ( lexer.lexicalAnalysis() != null ) ;
+                        while(lexer.lexicalAnalysis() != null);
                         lexer.printSymbolTableLexer();
 
                     } catch (IOException e) {
@@ -207,6 +206,7 @@
         private SymbolTable symbolTable = new SymbolTable();
         private String symbols = "=.(),+-*;{}%[]";
 
+
         //Symbol creation;
         private String lexeme = "";
         private Type type;
@@ -220,11 +220,10 @@
         private Byte CURRENT_STATE = 0;
         private Byte FINAL_STATE = 127;
 
-        private int lines = 0;
+        private int lines = 1;
         private int index;
         private final char EOF = (char) -1;
 
-        private boolean lexemeNotFound = false;
 
         public Lexer (String sourceCode){
              this.sourceCode = sourceCode.stripTrailing().replaceAll("\r\n","\n").toCharArray();
@@ -241,14 +240,20 @@
 
         public Symbol lexicalAnalysis(){
             Symbol symbol = new Symbol();
+
             CURRENT_STATE = INITIAL_STATE;
             lexeme = "";
             token = null;
             type = null;
 
-            while (CURRENT_STATE != FINAL_STATE && !lexemeNotFound && index < this.sourceCode.length){
+            while (CURRENT_STATE != FINAL_STATE && index <= this.sourceCode.length - 1 ){
 
                 readCharacter();
+
+                if(!AssertType.isValidChar(currentChar)){
+                    AssertType.printInvalidChar(currentChar,lines);
+                }
+
                 switch (CURRENT_STATE) {
                     case 0:
                         initialState();
@@ -319,18 +324,21 @@
                 }
             }
 
-            Symbol symbolFromTable = symbolTable.searchByLexeme(lexeme);
+            
+                Symbol symbolFromTable = symbolTable.searchByLexeme(lexeme);
 
-            if(symbolFromTable == null){
-                symbol.setLexeme(lexeme);
-                if(type != null) symbol.setType(type);
-                symbol.setToken(token);
-                symbolTable.add(symbol);
-            }
-            else {
-                symbol = symbolFromTable;
-            }
-            return index < sourceCode.length  ? symbol : null;
+                if(symbolFromTable == null && !lexeme.isBlank()){
+                    symbol.setLexeme(lexeme);
+                    if(type != null) symbol.setType(type);
+                    symbol.setToken(token);
+                    symbolTable.add(symbol);
+                }
+                else {
+                    symbol = symbolFromTable;
+                }
+
+
+            return  symbol;
         }
 
         private void initialState(){
@@ -415,7 +423,7 @@
                 CURRENT_STATE = 15;
             }
             else{
-                lexemeNotFound=true;
+                AssertType.lexemeNotIdentified(lexeme,lines);
             }
         }
 
@@ -433,7 +441,8 @@
                 CURRENT_STATE = FINAL_STATE;
             }
             else{
-                lexemeNotFound = true;
+                AssertType.lexemeNotIdentified(lexeme,lines);
+
             }
         }
 
@@ -472,7 +481,7 @@
 
             }
             else{
-                lexemeNotFound = true;
+                AssertType.lexemeNotIdentified(lexeme,lines);
             }
         }
 
@@ -483,7 +492,7 @@
                 type = Type.CHAR;
             }
             else{
-                lexemeNotFound = true;
+                AssertType.lexemeNotIdentified(lexeme,lines);
             }
         }
 
@@ -495,7 +504,7 @@
                 CURRENT_STATE = 18;
             }
             else{
-                lexemeNotFound = true;
+                AssertType.lexemeNotIdentified(lexeme,lines);
             }
         }
 
@@ -507,7 +516,7 @@
                 CURRENT_STATE = 20;
             }
             else{
-                lexemeNotFound = true;
+                AssertType.lexemeNotIdentified(lexeme,lines);
             }
         }
 
@@ -521,7 +530,7 @@
                 type = Type.INT;
             }
             else{
-                lexemeNotFound = true;
+                AssertType.lexemeNotIdentified(lexeme,lines);
             }
         }
 
@@ -563,7 +572,7 @@
                 type = Type.INT;
             }
             else{
-                lexemeNotFound = true;
+                AssertType.lexemeNotIdentified(lexeme,lines);
             }
         }
 
@@ -574,7 +583,7 @@
                 type = Type.INT;
             }
             else{
-                lexemeNotFound = true;
+                AssertType.lexemeNotIdentified(lexeme,lines);
             }
         }
 
@@ -585,7 +594,7 @@
                 type = Type.INT;
             }
             else{
-                lexemeNotFound = true;
+                AssertType.lexemeNotIdentified(lexeme,lines);
             }
         }
 
@@ -617,7 +626,10 @@
         }
     }
 
+
+
     class AssertType {
+        private static final Pattern validCharRegex = Pattern.compile("^[\\s\\n!?,;{}=*()><\\[\\]:+-/\"\'@a-zA-Z0-9%_.-]*$");
         public static final char EOF = (char)-1;
 
         public static boolean isCharacter(char c) {
@@ -632,7 +644,23 @@
         public static boolean isHexa(char c) {
             return ((c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'));
         }
-        public static boolean isValidChar(char c) {
-            return isCharacter(c) || isNumeric(c) ;
+        public static boolean isValidChar(char c){
+            String character = String.valueOf(c);
+            Matcher matcher = validCharRegex.matcher(character);
+            return matcher.matches();
         }
+
+        public static void printInvalidChar(char c, int lines){
+            String errorMessage = c == EOF ? "%d\nfim de arquivo nao esperado." : "%d\ncaractere invalido.";
+            System.out.printf(errorMessage,lines);
+            System.exit(1);
+        }
+
+        public static void lexemeNotIdentified(String  lexeme, int lines){
+            System.out.printf("%d\nlexema nao identificado [%s].",lines,lexeme);
+            System.exit(1);
+        }
+
+
+
     }
