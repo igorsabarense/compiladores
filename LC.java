@@ -20,7 +20,8 @@
 
                         Lexer lexer = new Lexer(source);
                         while(lexer.lexicalAnalysis() != null);
-                        lexer.printSymbolTableLexer();
+                        System.out.printf("%d linhas compiladas.", lexer.getLines());
+                    //   lexer.printSymbolTableLexer();
 
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -220,6 +221,8 @@
         private Byte CURRENT_STATE = 0;
         private Byte FINAL_STATE = 127;
 
+
+
         private int lines = 1;
         private int index;
         private final char EOF = (char) -1;
@@ -236,6 +239,10 @@
 
         public void printSymbolTableLexer(){
             this.symbolTable.forEach(e-> System.out.println(e.toString()));
+        }
+
+        public int getLines() {
+            return lines;
         }
 
         public Symbol lexicalAnalysis(){
