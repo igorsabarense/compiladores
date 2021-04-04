@@ -10,17 +10,12 @@
     public class LC {
         public static void main(String [] args) throws FileNotFoundException {
 
-
             if(args.length == 2) {
-
                 String sourceFilePath = args[0];
                 //String outputFilePath = args[1];
-
                 File sourceFile =  new File(sourceFilePath);
                 //File outputFile =  new File(outputFilePath);
-
                 if (Objects.nonNull(sourceFile)) {
-
                     try {
                         String source = Files.readString(sourceFile.toPath(), StandardCharsets.US_ASCII);
 
@@ -30,18 +25,13 @@
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-
-                } else {
+                }
+                else {
                     System.exit(1);
                 }
             }
-
         }
     }
-
-
-
-
 
     enum Type {
         CHAR,INT,BOOLEAN;
@@ -83,13 +73,9 @@
         OPENING_BRACKETS ("["),
         CLOSING_BRACKETS ("]"),
         MAIN("main"),
-
-
         //CONSTANT({0,1,2,3...}) , IDENTIFIER
         CONST("const"),
         IDENTIFIER("identifier");
-
-
 
         private String description;
 
@@ -105,12 +91,9 @@
 
     class Symbol  {
 
-
-
         private Token token;
         private Type type;
         private String lexeme;
-
         public Symbol(){
 
         }
@@ -162,7 +145,6 @@
                             " lexeme='" + lexeme + '\'' +
                             '}'  ;
         }
-
     }
 
     class SymbolTable extends HashSet<Symbol>{
@@ -206,7 +188,6 @@
             this.add(new Symbol("main",Token.MAIN));
         }
 
-
         public Symbol searchByLexeme(String lexeme){
             AtomicReference<Symbol> symbolToBeFound = new AtomicReference<>();
 
@@ -230,7 +211,6 @@
         private Type type;
         private Token token;
 
-
         private char[] sourceCode;
         private char currentChar = ' ';
         private Character previousChar = null;
@@ -249,7 +229,6 @@
              this.sourceCode = sourceCode.stripTrailing().replaceAll("\r\n","\n").toCharArray();
              this.index = 0 ;
         }
-
 
         public char[] getSourceCode() {
             return sourceCode;
@@ -328,7 +307,6 @@
                     case 20:
                         state20();
                         break;
-
                 }
                 if (  currentChar != EOF && previousChar == null && currentChar != '\n' && currentChar != ' ') {
                     lexeme = lexeme.concat(String.valueOf(currentChar));
@@ -336,7 +314,6 @@
             }
 
             System.out.println(lexeme);
-
             Symbol symbolFromTable = symbolTable.searchByLexeme(lexeme);
 
             if(symbolFromTable == null){
@@ -344,12 +321,11 @@
                 if(type != null) symbol.setType(type);
                 symbol.setToken(token);
                 symbolTable.add(symbol);
-            }else {
+            }
+            else {
                 System.out.println("ok");
                 symbol = symbolFromTable;
             }
-
-
             return index < sourceCode.length  ? symbol : null;
         }
 
@@ -386,7 +362,8 @@
             }
             else if (currentChar == '/'){
                 CURRENT_STATE = 9;
-            }else if (currentChar == '"'){
+            }
+            else if (currentChar == '"'){
                 CURRENT_STATE = 10;
             }
         }
@@ -394,7 +371,8 @@
         private void state1() {
             if(!AssertType.isNumeric(currentChar)){
                 returnChar();
-            }else{
+            }
+            else{
                 CURRENT_STATE = 1;
             }
         }
@@ -431,7 +409,6 @@
             else{
                 lexemeNotFound=true;
             }
-
         }
 
         private void state5() {
@@ -446,7 +423,8 @@
         private void state6() {
             if(currentChar == '='){
                 CURRENT_STATE = FINAL_STATE;
-            }else{
+            }
+            else{
                 lexemeNotFound = true;
             }
         }
@@ -454,7 +432,8 @@
         private void state7() {
             if(currentChar == '=' || currentChar == '>'){
                 CURRENT_STATE = FINAL_STATE;
-            }else{
+            }
+            else{
                 lexemeNotFound = true;
             }
         }
@@ -468,7 +447,8 @@
         private void state9() {
             if(currentChar == '*'){
                 CURRENT_STATE = 16;
-            }else{
+            }
+            else{
                 returnChar();
             }
         }
@@ -477,9 +457,11 @@
 
             if(currentChar != '$' && currentChar != '\n' && currentChar != '"' ){
                 CURRENT_STATE = 10;
-            }else if(currentChar == '"'){
+            }
+            else if(currentChar == '"'){
                 CURRENT_STATE = FINAL_STATE;
-            }else{
+            }
+            else{
                 lexemeNotFound = true;
             }
         }
@@ -541,7 +523,8 @@
         private void state16() {
             if(currentChar == '*'){
                 CURRENT_STATE = 17;
-            }else{
+            }
+            else{
                 CURRENT_STATE = 16;
             }
         }
@@ -549,7 +532,8 @@
         private void state17() {
             if(currentChar != '/'){
                 CURRENT_STATE = 16;
-            }else{
+            }
+            else{
                 CURRENT_STATE = INITIAL_STATE;
                 lexeme = "";
                 readCharacter();
@@ -583,14 +567,12 @@
             }
         }
 
-
         private boolean checkSymbols(char currentChar) {
             String str = String.valueOf(currentChar);
             if(symbols.contains(str.toString())){
                 return true;
             }
             return false;
-
         }
 
 
@@ -601,21 +583,18 @@
                 if (currentChar == '\n') {
                     lines++;
                 }
-            } else {
+            }
+            else {
                 currentChar = previousChar;
                 previousChar = null;
             }
-
         }
 
         private void returnChar () {
             previousChar = currentChar;
             CURRENT_STATE = FINAL_STATE;
         }
-
-
     }
-
 
     class AssertType {
         public static final char EOF = (char)-1;
