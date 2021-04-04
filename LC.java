@@ -208,7 +208,6 @@ class SymbolTable extends HashSet<Symbol>{
         this.add(new Symbol("[",Token.OPENING_BRACKETS));
         this.add(new Symbol("]", Token.CLOSING_BRACKETS));
         this.add(new Symbol("main",Token.MAIN));
-
     }
 
 
@@ -223,17 +222,12 @@ class SymbolTable extends HashSet<Symbol>{
 
         return symbolToBeFound.get() != null ? symbolToBeFound.get() : null;
     }
-
-
 }
 
 class Lexer {
 
-
-
     private SymbolTable symbolTable = new SymbolTable();
     private String symbols = "=.(),+-*;{}%[]";
-
 
     //Symbol creation;
     private String lexeme = "";
@@ -254,7 +248,6 @@ class Lexer {
     private final char EOF = (char) -1;
 
     private boolean lexemeNotFound = false;
-
 
     public Lexer (String sourceCode){
          this.sourceCode = sourceCode.stripTrailing().replaceAll("\r\n","\n").toCharArray();
@@ -332,16 +325,11 @@ class Lexer {
             if (  currentChar != EOF && previousChar == null && currentChar != '\n' && currentChar != ' ') {
                 lexeme = lexeme.concat(String.valueOf(currentChar));
             }
-
-
-
         }
-
 
         System.out.println(lexeme);
 
         Symbol symbolFromTable = symbolTable.searchByLexeme(lexeme);
-
 
         if(symbolFromTable == null){
             symbol.setLexeme(lexeme);
@@ -357,12 +345,7 @@ class Lexer {
         lexeme = "";
         token = null;
         return index <= sourceCode.length  ? symbol : null;
-
-
-
     }
-
-
 
     private void initialState(){
         if(checkSymbols(currentChar)){
@@ -413,6 +396,12 @@ class Lexer {
     private void state2() {
         if(AssertType.isNumeric(currentChar)){
             CURRENT_STATE = 12;
+        }
+        else if(AssertType.isHexa(currentChar)){
+            CURRENT_STATE = 13;
+        }
+        else if(!AssertType.isHexa(currentChar) || !AssertType.isNumeric(currentChar)){
+            returnChar();
         }
     }
 
@@ -474,11 +463,9 @@ class Lexer {
         }else{
             returnChar();
         }
-
     }
 
     private void state10() {
-
 
         if(currentChar != '$' && currentChar != '\n' && currentChar != '"' ){
             CURRENT_STATE = 10;
@@ -499,15 +486,40 @@ class Lexer {
     }
 
     private void state12(){
+        if(AssertType.isNumeric(currentChar)){
+            CURRENT_STATE = 14;
+        }
+        else if(AssertType.isHexa(currentChar)){
+            CURRENT_STATE = 18;
+        }
+        else{
+            lexemeNotFound = true;
+        }
     }
 
     private void state13() {
+        if(AssertType.isNumeric(currentChar)){
+            CURRENT_STATE = 19;
+        }
+        else if(AssertType.isHexa(currentChar)){
+            CURRENT_STATE = 20;
+        }
+        else{
+            lexemeNotFound = true;
+        }
     }
 
     private void state14() {
+        if(AssertType.isNumeric(currentChar)){
+            CURRENT_STATE = 1;
+        }
+        else if(currentChar == 'h'){
+            CURRENT_STATE = FINAL_STATE;
+        }
+        else{
+            lexemeNotFound = true;
+        }
     }
-
-
 
     private void state15() {
         if(AssertType.isNumeric(currentChar) || AssertType.isCharacter(currentChar)|| currentChar == '_'){
@@ -533,19 +545,36 @@ class Lexer {
             CURRENT_STATE = INITIAL_STATE;
             lexeme = "";
             readCharacter();
-
         }
-
     }
 
     private void state18(){
+        if(currentChar == 'h'){
+            CURRENT_STATE = FINAL_STATE;
+        }
+        else{
+            lexemeNotFound = true;
+        }
     }
 
     private void state19() {
+        if(currentChar == 'h'){
+            CURRENT_STATE = FINAL_STATE;
+        }
+        else{
+            lexemeNotFound = true;
+        }
     }
 
     private void state20() {
+        if(currentChar == 'h'){
+            CURRENT_STATE = FINAL_STATE;
+        }
+        else{
+            lexemeNotFound = true;
+        }
     }
+
 
 
 
@@ -597,7 +626,7 @@ class AssertType {
         return (c >= '0' && c <= '9');
     }
     public static boolean isHexa(char c) {
-        return (isNumeric(c)) || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
+        return ((c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
     }
     public static boolean isValidChar(char c) {
         return isCharacter(c) || isNumeric(c) ;
