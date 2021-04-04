@@ -21,6 +21,7 @@
 
                         Lexer lexer = new Lexer(source);
                         while ( lexer.lexicalAnalysis() != null ) ;
+                        lexer.printSymbolTableLexer();
 
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -234,11 +235,16 @@
             return sourceCode;
         }
 
+        public void printSymbolTableLexer(){
+            this.symbolTable.forEach(e-> System.out.println(e.toString()));
+        }
+
         public Symbol lexicalAnalysis(){
             Symbol symbol = new Symbol();
             CURRENT_STATE = INITIAL_STATE;
             lexeme = "";
             token = null;
+            type = null;
 
             while (CURRENT_STATE != FINAL_STATE && !lexemeNotFound && index < this.sourceCode.length){
 
@@ -313,7 +319,6 @@
                 }
             }
 
-            System.out.println(lexeme);
             Symbol symbolFromTable = symbolTable.searchByLexeme(lexeme);
 
             if(symbolFromTable == null){
@@ -323,7 +328,6 @@
                 symbolTable.add(symbol);
             }
             else {
-                System.out.println("ok");
                 symbol = symbolFromTable;
             }
             return index < sourceCode.length  ? symbol : null;
@@ -371,6 +375,8 @@
         private void state1() {
             if(!AssertType.isNumeric(currentChar)){
                 returnChar();
+                token = Token.CONST;
+                type = Type.INT;
             }
             else{
                 CURRENT_STATE = 1;
@@ -385,6 +391,8 @@
                 CURRENT_STATE = 13;
             }
             else if(!AssertType.isHexa(currentChar) || !AssertType.isNumeric(currentChar)){
+                type = Type.INT;
+                token = Token.CONST;
                 returnChar();
             }
         }
@@ -434,7 +442,7 @@
                 CURRENT_STATE = FINAL_STATE;
             }
             else{
-                lexemeNotFound = true;
+                returnChar();
             }
         }
 
@@ -460,6 +468,8 @@
             }
             else if(currentChar == '"'){
                 CURRENT_STATE = FINAL_STATE;
+                token = Token.CONST;
+
             }
             else{
                 lexemeNotFound = true;
@@ -469,6 +479,8 @@
         private void state11() {
             if(currentChar == '\''){
                 CURRENT_STATE = FINAL_STATE;
+                token = Token.CONST;
+                type = Type.CHAR;
             }
             else{
                 lexemeNotFound = true;
@@ -505,6 +517,8 @@
             }
             else if(currentChar == 'h'){
                 CURRENT_STATE = FINAL_STATE;
+                token = Token.CONST;
+                type = Type.INT;
             }
             else{
                 lexemeNotFound = true;
@@ -514,8 +528,10 @@
         private void state15() {
             if(AssertType.isNumeric(currentChar) || AssertType.isCharacter(currentChar)|| currentChar == '_'){
                 CURRENT_STATE = 15;
+
             }
             else{
+                token = Token.IDENTIFIER;
                 returnChar();
             }
         }
@@ -543,6 +559,8 @@
         private void state18(){
             if(currentChar == 'h'){
                 CURRENT_STATE = FINAL_STATE;
+                token = Token.CONST;
+                type = Type.INT;
             }
             else{
                 lexemeNotFound = true;
@@ -552,6 +570,8 @@
         private void state19() {
             if(currentChar == 'h'){
                 CURRENT_STATE = FINAL_STATE;
+                token = Token.CONST;
+                type = Type.INT;
             }
             else{
                 lexemeNotFound = true;
@@ -561,6 +581,8 @@
         private void state20() {
             if(currentChar == 'h'){
                 CURRENT_STATE = FINAL_STATE;
+                token = Token.CONST;
+                type = Type.INT;
             }
             else{
                 lexemeNotFound = true;
@@ -574,7 +596,6 @@
             }
             return false;
         }
-
 
         private void readCharacter() {
 
