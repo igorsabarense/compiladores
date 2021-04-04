@@ -22,7 +22,7 @@
 
                     Lexer lexer = new Lexer(source);
                     while(lexer.lexicalAnalysis() != null);
-                    System.out.printf("%d linhas compiladas.", lexer.getLines()+1);
+                    System.out.printf("%d linhas compiladas.", lexer.getLines());
                     //   lexer.printSymbolTableLexer();
 
                 }
@@ -244,7 +244,7 @@
 
 
         public Lexer (String sourceCode){
-             this.sourceCode = sourceCode.stripTrailing().replaceAll("\r\n","\n").toCharArray();
+             this.sourceCode = sourceCode.replaceAll("\r\n","\n").toCharArray();
              this.index = 0 ;
         }
 
