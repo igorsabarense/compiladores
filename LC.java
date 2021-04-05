@@ -1,51 +1,29 @@
-    import java.io.File;
-    import java.io.FileNotFoundException;
-    import java.io.IOException;
-    import java.nio.charset.StandardCharsets;
-    import java.nio.file.Files;
-    import java.nio.file.Paths;
+    import java.io.*;
     import java.util.*;
     import java.util.concurrent.atomic.AtomicReference;
     import java.util.regex.*;
-    import java.util.stream.Stream;
 
     public class LC {
-        public static void main(String [] args) throws FileNotFoundException {
-            
-            if(args.length == 2) {
-                String sourceFilePath = args[0];
-                //String outputFilePath = args[1];
-               // File sourceFile =  new File(sourceFilePath);
-                //File outputFile =  new File(outputFilePath);
-                if (Objects.nonNull(sourceFilePath)) {
-                    String source = readLineByLineJava8(sourceFilePath);
+        public static void main(String [] args) throws IOException {
 
-                    Lexer lexer = new Lexer(source);
-                    while(lexer.lexicalAnalysis() != null);
-                    System.out.printf("%d linhas compiladas.", lexer.getLines());
-                    //   lexer.printSymbolTableLexer();
+            String sourceCode = readLineByLine();
+            Lexer lexer = new Lexer(sourceCode);
+            while(lexer.lexicalAnalysis() != null);
+            System.out.printf("%d linhas compiladas.", lexer.getLines());
 
-                }
-                else {
-                    System.exit(1);
-                }
-            }
         }
 
-        public static String readLineByLineJava8(String filePath)
-        {
-            StringBuilder contentBuilder = new StringBuilder();
+        public static String readLineByLine() throws IOException {
+            BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+            StringBuilder sb = new StringBuilder();
+            String line = br.readLine();
 
-            try (Stream<String> stream = Files.lines( Paths.get(filePath), StandardCharsets.UTF_8))
-            {
-                stream.forEach(s -> contentBuilder.append(s).append("\n"));
+            while (line != null) {
+                sb.append(line);
+                sb.append(System.lineSeparator());
+                line = br.readLine();
             }
-            catch (IOException e)
-            {
-                e.printStackTrace();
-            }
-
-            return contentBuilder.toString();
+            return sb.toString();
         }
     }
 
