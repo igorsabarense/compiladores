@@ -1,0 +1,12 @@
+D > MAIN > B > EOF
+
+D = (var const)*;
+
+var = tipo id(,id)*;
+
+    int -> id ['[const]'] = [-] const
+    char => id ['[const]'] = (const | const_hexa)
+    boolean -> id['[const]'] = (TRUE | FALSE)
+
+B = { (C;)* }
+
