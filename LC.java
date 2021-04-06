@@ -14,7 +14,7 @@
         }
 
         public static String readLineByLine() throws IOException {
-            BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+            BufferedReader br = new BufferedReader(new InputStreamReader(System.in, "UTF-8"));
             StringBuilder sb = new StringBuilder();
             String line = br.readLine();
 
