@@ -11,6 +11,7 @@
             while(lexer.lexicalAnalysis() != null);
             System.out.printf("%d linhas compiladas.", lexer.getLines());
 
+
         }
 
         public static String readLineByLine() throws IOException {
@@ -192,6 +193,20 @@
             });
 
             return symbolToBeFound.get() != null ? symbolToBeFound.get() : null;
+        }
+    }
+
+    class Parser {
+        private Lexer lexer;
+        private Boolean matched;
+
+
+        public Parser(Lexer lexer){
+            this.lexer = lexer;
+        }
+
+        public Boolean matchToken(Symbol symbol){
+            return false;
         }
     }
 
@@ -625,8 +640,6 @@
         }
     }
 
-
-
     class AssertType {
         private static final Pattern validCharRegex = Pattern.compile("^[\\s\\n!?,;{}=*()><\\[\\]:+-/\"\'@a-zA-Z0-9%_.-]*$");
         public static final char EOF = (char)-1;
@@ -643,6 +656,7 @@
         public static boolean isHexa(char c) {
             return ((c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'));
         }
+
         public static boolean isValidChar(char c){
             String character = String.valueOf(c);
             Matcher matcher = validCharRegex.matcher(character);

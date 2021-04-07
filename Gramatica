@@ -1,12 +1,35 @@
-D > MAIN > B > EOF
+D -> DECLARACAO
+B -> BLOCO DE COMANDOS
+C -> COMANDO
+MAIN -> MAIN
+T -> TIPO
+V -> CONSTANTE
+EXP -> EXPRESSAO
 
-D = (var const)*;
+S -> {D} main B
 
-var = tipo id(,id)*;
+B ->  "{" {C} "}"
 
-    int -> id ['[const]'] = [-] const
-    char => id ['[const]'] = (const | const_hexa)
-    boolean -> id['[const]'] = (TRUE | FALSE)
+D -> T id({,id} | = V | ["[const]"]) | final id = V
+T -> int | char | boolean
+V -> [-] const | const_hexa | (TRUE | FALSE)
+C -> ; | id["["EXP"]"] := EXP |
+     for "(" {F} ; EXP ; {F} ")" ( C | "{"{C}"}" ) |
+     if "(" EXP ")" then (C|B) [else (C|B)] |
+     readln"("id["["EXP"]"]")" |
+     write"("{EXP{,EXP}}")" | writeln"("{EXP{,EXP}}")"
 
-B = { (C;)* }
+EXP -> EXPS [(= | <> | < | > | <= | >= ) EXPS]
+EXPS -> [+|-] TS {( + | - | or ) TS}
+T -> FS {(* | / | % | and ) FS}
+
+
+F -> C[,C] | ,C
+
+
+
+
+
+
+
 
