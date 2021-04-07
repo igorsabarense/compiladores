@@ -30,6 +30,7 @@
     enum Type {
         CHAR,INT,BOOLEAN;
     }
+
     enum Token {
         FINAL("final"),
         INT("int"),
@@ -332,7 +333,7 @@
                         state20();
                         break;
                 }
-                if (  currentChar != EOF && previousChar == null && currentChar != '\n' && currentChar != ' ') {
+                if ( previousChar == null && currentChar != '\n' && currentChar != ' ') {
                     lexeme = lexeme.concat(String.valueOf(currentChar));
                 }
             }
