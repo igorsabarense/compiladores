@@ -11,7 +11,6 @@
             while(lexer.lexicalAnalysis() != null);
             System.out.printf("%d linhas compiladas.", lexer.getLines());
 
-
         }
 
         public static String readLineByLine() throws IOException {
@@ -68,7 +67,6 @@
         OPENING_BRACKETS ("["),
         CLOSING_BRACKETS ("]"),
         MAIN("main"),
-        //CONSTANT({0,1,2,3...}) , IDENTIFIER
         CONST("const"),
         IDENTIFIER("identifier");
 
