@@ -13,11 +13,13 @@ B ->  "{" {C} "}"
 D -> T id({,id} | = V | ["[V]"]); | final id = V;
 T -> int | char | boolean
 V -> [-] const | const_hexa | (TRUE | FALSE)
-C -> ; | id["["EXP"]"] := EXP |
+C -> ; |
+     id["["EXP"]"] := EXP |
      for "(" {F} ; EXP ; {F} ")" ( C | "{"{C}"}" ) |
      if "(" EXP ")" then (C|B) [else (C|B)] |
      readln"("id["["EXP"]"]")" |
-     write"("{EXP{,EXP}}")" | writeln"("{EXP{,EXP}}")"
+     write"("{EXP{,EXP}}")" |
+     writeln"("{EXP{,EXP}}")"
 
 F -> C[,C] | ,C
 EXP -> EXPS [(= | <> | < | > | <= | >= ) EXPS]

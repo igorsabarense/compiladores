@@ -35,6 +35,7 @@
         FINAL("final"),
         INT("int"),
         CHAR("char"),
+        BOOLEAN("boolean"),
         FOR("for"),
         IF("if"),
         ELSE("else"),
@@ -103,9 +104,7 @@
             this.type = type;
         }
 
-        public Token getToken() {
-            return token;
-        }
+        public Token getToken() { return token; }
 
         public void setToken(Token token) {
             this.token = token;
@@ -147,6 +146,7 @@
             this.add(new Symbol("final",Token.FINAL));
             this.add(new Symbol("int",Token.INT));
             this.add(new Symbol("char",Token.CHAR));
+            this.add(new Symbol("boolean",Token.BOOLEAN));
             this.add(new Symbol("for",Token.FOR));
             this.add(new Symbol("if",Token.IF));
             this.add(new Symbol("else",Token.ELSE));
@@ -198,18 +198,80 @@
     class Parser {
         private Lexer lexer;
         private Boolean matched;
+        private Symbol symbol;
 
+        public Parser(Lexer lexer) {
 
-        public Parser(Lexer lexer){
             this.lexer = lexer;
+            this.symbol = this.lexer.lexicalAnalysis();
+
         }
 
-        public Boolean matchToken(Symbol symbol){
+        public Boolean matchToken(Token token){
+
             return false;
+        }
+        private boolean hasToken(List<Token> tokens){
+            return tokens.stream().anyMatch(token -> token.equals(symbol.getToken()));
+        }
+
+        private boolean compareToken (Token token){
+            return symbol.getToken().equals(token);
+        }
+
+        // S -> {D} main B
+        public void S (){
+            while ( hasToken(Arrays.asList(Token.FINAL,Token.INT, Token.CHAR, Token.TRUE, Token.FALSE, Token.BOOLEAN))){
+                D();
+            }
+            matchToken(Token.MAIN);
+            while ( hasToken(Arrays.asList(Token.SEMICOLON,Token.FOR, Token.IDENTIFIER, Token.IF,Token.READLN, Token.WRITE, Token.WRITELN))) {
+                B();
+            }
+        }
+
+        //D -> T id({,id} | = V | ["[V]"]); | final id = V;
+        private void D (){
+            if(compareToken(Token.FINAL)){
+                T();
+            }
+        }
+
+        //B ->  "{" {C} "}"
+        private void B (){
+
+        }
+        //
+        private void T (){
+
+        }
+        private void V (){
+
+        }
+        private void C (){
+
+        }
+        private void EXP (){
+
+        }
+        private void F (){
+
+        }
+        private void EXPS (){
+
+        }
+        private void TS (){
+
+        }
+        private void FS(){
+
         }
     }
 
     class Lexer {
+
+
+
 
         private SymbolTable symbolTable = new SymbolTable();
         private String symbols = "=.(),+-*;{}%[]";
@@ -234,14 +296,13 @@
         private int index;
         private final char EOF = (char) -1;
 
+        public SymbolTable getSymbolTable() {
+            return symbolTable;
+        }
 
         public Lexer (String sourceCode){
              this.sourceCode = sourceCode.replaceAll("\r\n","\n").toCharArray();
              this.index = 0 ;
-        }
-
-        public char[] getSourceCode() {
-            return sourceCode;
         }
 
         public void printSymbolTableLexer(){
@@ -676,3 +737,5 @@
 
 
     }
+
+
