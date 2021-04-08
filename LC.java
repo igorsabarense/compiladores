@@ -7,9 +7,9 @@
         public static void main(String [] args) throws IOException {
 
             String sourceCode = readLineByLine();
-            Lexer lexer = new Lexer(sourceCode);
-            while(lexer.lexicalAnalysis() != null);
-            System.out.printf("%d linhas compiladas.", lexer.getLines());
+            Parser parser = new Parser(new Lexer(sourceCode));
+            parser.S();
+            System.out.printf("%d linhas compiladas.", parser.getLexer().getLines());
 
         }
 
@@ -28,14 +28,14 @@
     }
 
     enum Type {
-        CHAR,INT,BOOLEAN;
+        INT, CHAR,BOOLEAN;
     }
 
     enum Token {
-        FINAL("final"),
         INT("int"),
         CHAR("char"),
         BOOLEAN("boolean"),
+        FINAL("final"),
         FOR("for"),
         IF("if"),
         ELSE("else"),
@@ -197,9 +197,10 @@
 
     class Parser {
         private Lexer lexer;
-        private Boolean matched;
-        private Symbol symbol;
 
+        private Boolean matched;
+
+        private Symbol symbol;
         public Parser(Lexer lexer) {
 
             this.lexer = lexer;
@@ -207,10 +208,18 @@
 
         }
 
-        public Boolean matchToken(Token token){
-
-            return false;
+        public Lexer getLexer() {
+            return lexer;
         }
+
+        public void matchToken(Token token){
+            if(Objects.nonNull(symbol) && compareToken(token)){
+                symbol = lexer.lexicalAnalysis();
+            }else{
+                AssertType.lexemeNotIdentified(symbol.getLexeme(), lexer.getLines());
+            }
+        }
+
         private boolean hasToken(List<Token> tokens){
             return tokens.stream().anyMatch(token -> token.equals(symbol.getToken()));
         }
@@ -219,37 +228,159 @@
             return symbol.getToken().equals(token);
         }
 
+        private boolean compareType (Type type){
+            return symbol.getType().equals(type);
+        }
+
         // S -> {D} main B
         public void S (){
+
             while ( hasToken(Arrays.asList(Token.FINAL,Token.INT, Token.CHAR, Token.TRUE, Token.FALSE, Token.BOOLEAN))){
                 D();
             }
+
             matchToken(Token.MAIN);
-            while ( hasToken(Arrays.asList(Token.SEMICOLON,Token.FOR, Token.IDENTIFIER, Token.IF,Token.READLN, Token.WRITE, Token.WRITELN))) {
-                B();
-            }
+
+            B();
+
         }
 
         //D -> T id({,id} | = V | ["[V]"]); | final id = V;
         private void D (){
             if(compareToken(Token.FINAL)){
-                T();
+                matchToken(Token.FINAL);
+                matchToken(Token.IDENTIFIER);
+                matchToken(Token.EQUAL);
+                V();
+                matchToken(Token.SEMICOLON);
+            }else if(compareToken(Token.INT) || compareToken(Token.CHAR) || compareToken(Token.BOOLEAN)){
+                // when in if , we know the symbol's token is the INT|CHAR|BOOLEAN , so we pass to the next state the symbol's token
+                T(symbol.getToken());
+                matchToken(Token.IDENTIFIER);
+
+                if(compareToken(Token.OPENING_BRACKETS)){
+                    matchToken(Token.OPENING_BRACKETS);
+                    matchToken(Token.CONST);
+                    matchToken(Token.CLOSING_BRACKETS);
+                }else if(compareToken(Token.COMMA)){
+                    matchToken(Token.COMMA);
+                    matchToken(Token.IDENTIFIER);
+                }
+
+                matchToken(Token.SEMICOLON);
             }
         }
 
         //B ->  "{" {C} "}"
         private void B (){
+            matchToken(Token.OPENING_BRACES);
+            while ( hasToken(Arrays.asList(Token.SEMICOLON,Token.FOR, Token.IDENTIFIER, Token.IF,Token.READLN, Token.WRITE, Token.WRITELN))) {
+                C();
+            }
+            matchToken(Token.CLOSING_BRACES);
+
 
         }
         //
-        private void T (){
-
+        private void T (Token token){
+            matchToken(token);
         }
+
+        private void matchType(Type type) {
+            if(Objects.nonNull(symbol) && compareType(type)){
+                symbol = lexer.lexicalAnalysis();
+            }else{
+                AssertType.lexemeNotIdentified(symbol.getLexeme(), lexer.getLines());
+            }
+        }
+
         private void V (){
-
+            if(compareToken(Token.MINUS_SIGN)){
+                matchToken(Token.MINUS_SIGN);
+                matchToken(Token.CONST);
+            }else if(compareToken(Token.CONST)){
+                matchToken(Token.CONST);
+            }else if(compareToken(Token.TRUE) || compareToken(Token.FALSE)){
+                matchToken(symbol.getToken());
+            }
         }
-        private void C (){
 
+        private void C (){
+            if(compareToken(Token.SEMICOLON)){
+                matchToken(Token.SEMICOLON);
+            }else if(compareToken(Token.IDENTIFIER)){
+                matchToken(Token.IDENTIFIER);
+                if(compareToken(Token.OPENING_BRACKETS)){
+                    matchToken(Token.OPENING_BRACKETS);
+                    //voltar while EXP
+                    EXP();
+                    matchToken(Token.CLOSING_BRACKETS);
+                }
+                matchToken(Token.ATTRIBUTION);
+                EXP();
+
+            } else if (compareToken(Token.FOR)) {
+                matchToken(Token.FOR);
+                matchToken(Token.OPENING_PARENTHESIS);
+                // voltar no F para while
+                F();
+                matchToken(Token.SEMICOLON);
+                EXP();
+                matchToken(Token.SEMICOLON);
+                // voltar no F para while
+                F();
+                matchToken(Token.CLOSING_PARENTHESIS);
+
+                if(compareToken(Token.OPENING_BRACES)){
+                    B();
+                }else{
+                    C();
+                }
+
+            }else if(compareToken(Token.IF)){
+                matchToken(Token.IF);
+                matchToken(Token.OPENING_PARENTHESIS);
+                EXP();
+                matchToken(Token.CLOSING_PARENTHESIS);
+                matchToken(Token.THEN);
+                if(compareToken(Token.OPENING_BRACES)){
+                    B();
+                }else{
+                    C();
+                }
+
+                if(compareToken(Token.ELSE)){
+                    matchToken(Token.ELSE);
+                    if(compareToken(Token.OPENING_BRACES)){
+                        B();
+                    }else{
+                        C();
+                    }
+
+                }
+            }else if(compareToken(Token.READLN)){
+                matchToken(Token.READLN);
+                matchToken(Token.OPENING_PARENTHESIS);
+                matchToken(Token.IDENTIFIER);
+                if(compareToken(Token.OPENING_BRACKETS)){
+                    matchToken(Token.OPENING_BRACKETS);
+                    //voltar while EXP
+                    EXP();
+                    matchToken(Token.CLOSING_BRACKETS);
+                }
+                matchToken(Token.CLOSING_PARENTHESIS);
+            }else if(compareToken(Token.WRITE) || compareToken(Token.WRITELN)){
+                matchToken(symbol.getToken());
+                matchToken(Token.OPENING_PARENTHESIS);
+                //while && if(token do exp)
+                EXP();
+                if(compareToken(Token.COMMA)){
+                    matchToken(Token.COMMA);
+                    //while
+                    EXP();
+                    matchToken(Token.CLOSING_PARENTHESIS);
+                }
+            }
         }
         private void EXP (){
 
