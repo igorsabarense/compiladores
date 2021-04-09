@@ -17,13 +17,13 @@ C -> ; |
      id["["EXP"]"] := EXP |
      for "(" {F} ; EXP ; {F} ")" ( C | B ) |
      if "(" EXP ")" then (C|B) [else (C|B)] |
-     readln"("id["["EXP"]"]")" |
-     write"("{EXP{,EXP}}")" |
-     writeln"("{EXP{,EXP}}")"
+     readln"("id[EXP]"]")" |
+     write"("EXP{,EXP}")" |
+     writeln"("EXP{,EXP}")"
 
-F -> C[,C] | ,C
+F -> C[,C]
 EXP -> EXPS [(= | <> | < | > | <= | >= ) EXPS]
-EXPS -> [+|-] TS {( + | - | or ) TS}
+EXPS -> [+|-] TS { + | - | or ) TS}
 TS -> FS {(* | / | % | and ) FS}
 FS -> not FS | "EXP" | const | id["["EXP"]"]
 

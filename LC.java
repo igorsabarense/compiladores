@@ -5,7 +5,6 @@
 
     public class LC {
         public static void main(String [] args) throws IOException {
-
             String sourceCode = readLineByLine();
             Parser parser = new Parser(new Lexer(sourceCode));
             parser.S();
@@ -254,7 +253,7 @@
                 V();
                 matchToken(Token.SEMICOLON);
             }else if(compareToken(Token.INT) || compareToken(Token.CHAR) || compareToken(Token.BOOLEAN)){
-                // when in if , we know the symbol's token is the INT|CHAR|BOOLEAN , so we pass to the next state the symbol's token
+                // when inside if , we know the symbol's token is the INT|CHAR|BOOLEAN , so we pass to the next state the symbol's token
                 T(symbol.getToken());
                 matchToken(Token.IDENTIFIER);
 
@@ -265,6 +264,9 @@
                 }else if(compareToken(Token.COMMA)){
                     matchToken(Token.COMMA);
                     matchToken(Token.IDENTIFIER);
+                }else if(compareToken(Token.EQUAL)){
+                    matchToken(Token.EQUAL);
+                    V();
                 }
 
                 matchToken(Token.SEMICOLON);
@@ -278,20 +280,10 @@
                 C();
             }
             matchToken(Token.CLOSING_BRACES);
-
-
         }
         //
         private void T (Token token){
             matchToken(token);
-        }
-
-        private void matchType(Type type) {
-            if(Objects.nonNull(symbol) && compareType(type)){
-                symbol = lexer.lexicalAnalysis();
-            }else{
-                AssertType.lexemeNotIdentified(symbol.getLexeme(), lexer.getLines());
-            }
         }
 
         private void V (){
@@ -312,7 +304,6 @@
                 matchToken(Token.IDENTIFIER);
                 if(compareToken(Token.OPENING_BRACKETS)){
                     matchToken(Token.OPENING_BRACKETS);
-                    //voltar while EXP
                     EXP();
                     matchToken(Token.CLOSING_BRACKETS);
                 }
@@ -322,13 +313,17 @@
             } else if (compareToken(Token.FOR)) {
                 matchToken(Token.FOR);
                 matchToken(Token.OPENING_PARENTHESIS);
-                // voltar no F para while
-                F();
+
+                while(compareToken(Token.IDENTIFIER) || compareToken(Token.COMMA)){
+                    F();
+                }
                 matchToken(Token.SEMICOLON);
                 EXP();
                 matchToken(Token.SEMICOLON);
-                // voltar no F para while
-                F();
+
+                while(compareToken(Token.IDENTIFIER) || compareToken(Token.COMMA)){
+                    F();
+                }
                 matchToken(Token.CLOSING_PARENTHESIS);
 
                 if(compareToken(Token.OPENING_BRACES)){
@@ -356,7 +351,6 @@
                     }else{
                         C();
                     }
-
                 }
             }else if(compareToken(Token.READLN)){
                 matchToken(Token.READLN);
@@ -364,7 +358,6 @@
                 matchToken(Token.IDENTIFIER);
                 if(compareToken(Token.OPENING_BRACKETS)){
                     matchToken(Token.OPENING_BRACKETS);
-                    //voltar while EXP
                     EXP();
                     matchToken(Token.CLOSING_BRACKETS);
                 }
@@ -372,37 +365,79 @@
             }else if(compareToken(Token.WRITE) || compareToken(Token.WRITELN)){
                 matchToken(symbol.getToken());
                 matchToken(Token.OPENING_PARENTHESIS);
-                //while && if(token do exp)
                 EXP();
-                if(compareToken(Token.COMMA)){
+
+                while(compareToken(Token.COMMA)){
+
                     matchToken(Token.COMMA);
-                    //while
                     EXP();
-                    matchToken(Token.CLOSING_PARENTHESIS);
                 }
+                matchToken(Token.CLOSING_PARENTHESIS);
+
             }
         }
         private void EXP (){
+            EXPS();
+            if(compareToken(Token.EQUAL) ||
+                    compareToken( Token.LT) ||
+                    compareToken(Token.NOT_EQUAL) ||
+                    compareToken(Token.LTOE) ||
+                    compareToken(Token.GT) ||
+                    compareToken(Token.GTOE)){
 
-        }
-        private void F (){
+                matchToken(symbol.getToken());
+                EXPS();
 
+            }
         }
         private void EXPS (){
+            if(compareToken(Token.MINUS_SIGN) || compareToken(Token.PLUS_SIGN)){
+                matchToken(symbol.getToken());
+            }
+            TS();
+            while (hasToken(Arrays.asList(Token.PLUS_SIGN, Token.MINUS_SIGN,Token.OR))){
 
+                matchToken(symbol.getToken());
+                TS();
+            }
         }
+
+        private void F (){
+            C();
+            if(compareToken(Token.COMMA)){
+                matchToken(Token.COMMA);
+                C();
+            }
+        }
+
         private void TS (){
-
+            FS();
+            while(hasToken(Arrays.asList(Token.ASTERISK,Token.SLASH,Token.PERCENTAGE,Token.AND))){
+                matchToken(symbol.getToken());
+                FS();
+            }
         }
-        private void FS(){
 
+        private void FS(){
+            if(compareToken(Token.NOT)){
+                matchToken(Token.NOT);
+                FS();
+            }else if(compareToken(Token.CONST)){
+                matchToken(symbol.getToken());
+            }
+            else if(compareToken(Token.IDENTIFIER)){
+                matchToken(Token.IDENTIFIER);
+
+                if(compareToken(Token.OPENING_BRACKETS)){
+                    matchToken(Token.OPENING_BRACKETS);
+                    EXP();
+                    matchToken(Token.CLOSING_BRACES);
+                }
+            }
         }
     }
 
     class Lexer {
-
-
-
 
         private SymbolTable symbolTable = new SymbolTable();
         private String symbols = "=.(),+-*;{}%[]";
@@ -420,8 +455,6 @@
         private Byte INITIAL_STATE = 0;
         private Byte CURRENT_STATE = 0;
         private Byte FINAL_STATE = 127;
-
-
 
         private int lines = 1;
         private int index;

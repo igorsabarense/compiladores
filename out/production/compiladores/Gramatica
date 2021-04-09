@@ -17,9 +17,9 @@ C -> ; |
      id["["EXP"]"] := EXP |
      for "(" {F} ; EXP ; {F} ")" ( C | B ) |
      if "(" EXP ")" then (C|B) [else (C|B)] |
-     readln"("id["["EXP"]"]")" |
-     write"("{EXP{,EXP}}")" |
-     writeln"("{EXP{,EXP}}")"
+     readln"("id[EXP]"]")" |
+     write"("EXP{,EXP}")" |
+     writeln"("EXP{,EXP}")"
 
 F -> C[,C]
 EXP -> EXPS [(= | <> | < | > | <= | >= ) EXPS]

@@ -4,12 +4,12 @@ int n;
 char nome[40];
 final MAXITER=10;
 main {
-º
-￿
 /* Programa Principal */
 
   write("Digite seu nome: ");
   readln(nome);
-  for (n:=1; n=>MAXITER; n:=n+1)
-    writeln("Ola' ",nome);
+  readln(nome[40]);
+  for (n:=1,n:=1,n:=1,n:=1,n:=1; n>=MAXITER; n:=n+1)
+   sada[121*123] := 1*1;
+    writeln("Ola' ",nome, dwadaw, dawdaw, x<>1);
 }
