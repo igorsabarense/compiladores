@@ -10,6 +10,6 @@ main {
   readln(nome);
   readln(nome[40]);
   for (n:=1,n:=1,n:=1,n:=1,n:=1; n>=MAXITER; n:=n+1)
-   sada[121*123] := 1*1;
+    int n 
     writeln("Ola' ",nome, dwadaw, dawdaw, x<>1);
 }

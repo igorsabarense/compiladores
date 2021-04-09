@@ -215,7 +215,7 @@
             if(Objects.nonNull(symbol) && compareToken(token)){
                 symbol = lexer.lexicalAnalysis();
             }else{
-                AssertType.lexemeNotIdentified(symbol.getLexeme(), lexer.getLines());
+                AssertType.unexpectedToken(symbol.getLexeme(), lexer.getLines());
             }
         }
 
@@ -899,7 +899,10 @@
         }
 
 
-
+        public static void unexpectedToken(String lexeme, int lines) {
+            System.out.printf("%d\ntoken nao esperado [%s].",lines,lexeme);
+            System.exit(1);
+        }
     }
 
 
