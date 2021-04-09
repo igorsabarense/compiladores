@@ -195,11 +195,10 @@
     }
 
     class Parser {
+
         private Lexer lexer;
-
-        private Boolean matched;
-
         private Symbol symbol;
+
         public Parser(Lexer lexer) {
 
             this.lexer = lexer;
@@ -234,7 +233,7 @@
         // S -> {D} main B
         public void S (){
 
-            while ( hasToken(Arrays.asList(Token.FINAL,Token.INT, Token.CHAR, Token.TRUE, Token.FALSE, Token.BOOLEAN))){
+            while ( hasToken(Arrays.asList(Token.FINAL,Token.INT, Token.CHAR, Token.BOOLEAN))){
                 D();
             }
 
@@ -422,10 +421,13 @@
             if(compareToken(Token.NOT)){
                 matchToken(Token.NOT);
                 FS();
-            }else if(compareToken(Token.CONST)){
-                matchToken(symbol.getToken());
-            }
-            else if(compareToken(Token.IDENTIFIER)){
+            }else if ( compareToken(Token.OPENING_PARENTHESIS)) {
+                matchToken(Token.OPENING_PARENTHESIS);
+                EXP();
+                matchToken(Token.CLOSING_PARENTHESIS);
+            }else if(hasToken(Arrays.asList(Token.CONST, Token.TRUE , Token.FALSE))){
+                V();
+            }else if(compareToken(Token.IDENTIFIER)){
                 matchToken(Token.IDENTIFIER);
 
                 if(compareToken(Token.OPENING_BRACKETS)){
