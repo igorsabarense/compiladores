@@ -1,5 +1,21 @@
 # Compiladores # 
 
+MicroCompilador - Semestre 01/2021
+
+### Autores ###
+ ```   
+ Brenon Henrique 
+ Frederico Terrinha
+ Igor Sabarense
+```
+
+
+
+## Automato #
+
+![automatofinalizado](https://user-images.githubusercontent.com/36987853/114118883-f7e3a980-98bf-11eb-9aaa-2df747cffc13.png)
+
+
 ## Gramática #
 ```
 D -> DECLARACAO
