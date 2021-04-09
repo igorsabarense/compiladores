@@ -1,7 +1,7 @@
 # Compiladores # 
 
 ## Gramática #
-
+```
 D -> DECLARACAO
 B -> BLOCO DE COMANDOS
 C -> COMANDO
@@ -30,7 +30,7 @@ EXP -> EXPS [(= | <> | < | > | <= | >= ) EXPS]
 EXPS -> [+|-] TS { + | - | or ) TS}
 TS -> FS {(* | / | % | and ) FS}
 FS -> not FS | "("EXP")" | V | id["["EXP"]"]
-
+```
 
 
 
