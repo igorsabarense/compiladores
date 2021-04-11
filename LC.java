@@ -13,7 +13,7 @@
         }
 
         public static String readLineByLine() throws IOException {
-            BufferedReader br = new BufferedReader(new InputStreamReader(System.in, "UTF-8"));
+            BufferedReader br = new BufferedReader(new InputStreamReader(System.in, "US-ASCII"));
             StringBuilder sb = new StringBuilder();
             String line = br.readLine();
 
@@ -223,7 +223,10 @@
         }
 
         private boolean compareToken (Token token){
-            return symbol.getToken().equals(token);
+            if(Objects.nonNull(symbol) && Objects.nonNull(symbol.getToken())){
+                return symbol.getToken().equals(token);
+            }
+            return false;
         }
 
         private boolean compareType (Type type){
@@ -482,6 +485,7 @@
         public Symbol lexicalAnalysis(){
             Symbol symbol = new Symbol();
 
+
             CURRENT_STATE = INITIAL_STATE;
             lexeme = "";
             token = null;
@@ -560,6 +564,8 @@
                         state20();
                         break;
                 }
+
+
                 if ( previousChar == null && currentChar != '\n' && currentChar != ' ') {
                     lexeme = lexeme.concat(String.valueOf(currentChar));
                 }
@@ -569,13 +575,14 @@
             Symbol symbolFromTable = symbolTable.searchByLexeme(lexeme);
 
             if(symbolFromTable == null && !lexeme.equals("")){
-               symbol.setLexeme(lexeme);
-               if(type != null) symbol.setType(type);
-               symbol.setToken(token);
-               symbolTable.add(symbol);
+
+                symbol.setLexeme(lexeme);
+                if(type != null) symbol.setType(type);
+                symbol.setToken(token);
+                symbolTable.add(symbol);
             }
             else {
-               symbol = symbolFromTable;
+                symbol = symbolFromTable;
             }
 
             return  symbol;
