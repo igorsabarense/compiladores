@@ -5,24 +5,11 @@
 
     public class LC {
         public static void main(String [] args) throws IOException {
-            String sourceCode = readLineByLine();
-            Parser parser = new Parser(new Lexer(sourceCode));
+            BufferedReader br = new BufferedReader(new InputStreamReader(System.in, "US-ASCII"));
+            Parser parser = new Parser(new Lexer(br));
             parser.S();
             System.out.printf("%d linhas compiladas.", parser.getLexer().getLines());
 
-        }
-
-        public static String readLineByLine() throws IOException {
-            BufferedReader br = new BufferedReader(new InputStreamReader(System.in, "US-ASCII"));
-            StringBuilder sb = new StringBuilder();
-            String line = br.readLine();
-
-            while (line != null) {
-                sb.append(line);
-                sb.append(System.lineSeparator());
-                line = br.readLine();
-            }
-            return sb.toString();
         }
     }
 
@@ -447,13 +434,13 @@
         private SymbolTable symbolTable = new SymbolTable();
         private String symbols = "=.(),+-*;{}%[]";
 
+        private BufferedReader bufferedReader;
 
         //Symbol creation;
         private String lexeme = "";
         private Type type;
         private Token token;
 
-        private char[] sourceCode;
         private char currentChar = ' ';
         private Character previousChar = null;
 
@@ -462,20 +449,9 @@
         private Byte FINAL_STATE = 127;
 
         private int lines = 1;
-        private int index;
-        private final char EOF = (char) -1;
 
-        public SymbolTable getSymbolTable() {
-            return symbolTable;
-        }
-
-        public Lexer (String sourceCode){
-             this.sourceCode = sourceCode.replaceAll("\r\n","\n").toCharArray();
-             this.index = 0 ;
-        }
-
-        public void printSymbolTableLexer(){
-            this.symbolTable.forEach(e-> System.out.println(e.toString()));
+        public Lexer (BufferedReader br){
+             this.bufferedReader = br;
         }
 
         public int getLines() {
@@ -491,7 +467,7 @@
             token = null;
             type = null;
 
-            while (CURRENT_STATE != FINAL_STATE && index <= this.sourceCode.length - 1 ){
+            while (CURRENT_STATE != FINAL_STATE){
 
                 readCharacter();
 
@@ -571,7 +547,7 @@
                 }
             }
 
-            
+
             Symbol symbolFromTable = symbolTable.searchByLexeme(lexeme);
 
             if(symbolFromTable == null && !lexeme.equals("")){
@@ -853,17 +829,20 @@
             return false;
         }
 
-        private void readCharacter() {
-
-            if (previousChar == null) {
-                currentChar = sourceCode[index++];
-                if (currentChar == '\n') {
-                    lines++;
+        private void readCharacter()  {
+            try{
+                if (previousChar == null) {
+                    currentChar = (char) bufferedReader.read();
+                    if (currentChar == '\n') {
+                        lines++;
+                    }
                 }
-            }
-            else {
-                currentChar = previousChar;
-                previousChar = null;
+                else {
+                    currentChar = previousChar;
+                    previousChar = null;
+                }
+            }catch(Exception ex){
+                ex.printStackTrace();
             }
         }
 
