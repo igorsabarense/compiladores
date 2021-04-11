@@ -543,7 +543,7 @@
                 }
 
 
-                if ( previousChar == null && currentChar != '\n' && currentChar != ' ') {
+                if ( previousChar == null && (currentChar != '\n' && currentChar != '\r') && currentChar != ' ') {
                     lexeme = lexeme.concat(String.valueOf(currentChar));
                 }
             }
@@ -569,7 +569,7 @@
             if(checkSymbols(currentChar)){
                 CURRENT_STATE = FINAL_STATE;
             }
-            else if (currentChar == ' ' || currentChar == '\n'){
+            else if (currentChar == ' ' || (currentChar == '\n')){
                 CURRENT_STATE = INITIAL_STATE;
             }
             else if (AssertType.isNumericNotZero(currentChar)){
