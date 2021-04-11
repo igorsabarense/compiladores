@@ -505,7 +505,7 @@ class Parser {
 class Lexer {
 
     private SymbolTable symbolTable = new SymbolTable();
-    private String symbols = "=.(),+-*;{}%[]";
+    private String symbols = "=(),+-*;{}%[]";
 
     private BufferedReader bufferedReader;
 
@@ -648,7 +648,7 @@ class Lexer {
     private void initialState() {
         if (checkSymbols(currentChar)) {
             CURRENT_STATE = FINAL_STATE;
-        } else if (currentChar == ' ' || (currentChar == '\n')) {
+        } else if (currentChar == ' ' || (currentChar == '\n' || currentChar=='\r')) {
             CURRENT_STATE = INITIAL_STATE;
         } else if (AssertType.isNumericNotZero(currentChar)) {
             CURRENT_STATE = 1;
@@ -670,6 +670,8 @@ class Lexer {
             CURRENT_STATE = 9;
         } else if (currentChar == '"') {
             CURRENT_STATE = 10;
+        } else {
+            AssertType.lexemeNotIdentified(String.valueOf(currentChar), lines);
         }
     }
 
