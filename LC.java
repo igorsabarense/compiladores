@@ -6,6 +6,7 @@
     public class LC {
         public static void main(String [] args) throws IOException {
             BufferedReader br = new BufferedReader(new InputStreamReader(System.in, "US-ASCII"));
+
             Parser parser = new Parser(new Lexer(br));
             parser.S();
             System.out.printf("%d linhas compiladas.", parser.getLexer().getLines());
@@ -831,7 +832,7 @@
 
         private void readCharacter()  {
             try{
-                if (previousChar == null) {
+                 if (previousChar == null) {
                     currentChar = (char) bufferedReader.read();
                     if (currentChar == '\n') {
                         lines++;
