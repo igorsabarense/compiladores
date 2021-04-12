@@ -519,6 +519,8 @@ class Parser {
             matchToken(symbol.getToken());
             FS();
         }
+
+
     }
 
     private void FS() {
@@ -539,6 +541,8 @@ class Parser {
                 EXP();
                 matchToken(Token.CLOSING_BRACES);
             }
+        } else {
+            AssertType.unexpectedToken(symbol.getLexeme(), lexer.getLines());
         }
     }
 }
