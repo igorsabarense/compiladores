@@ -26,6 +26,7 @@ public class LC {
         parser.S();
         System.out.printf("%d linhas compiladas.", parser.getLexer().getLines());
 
+
     }
 }
 
@@ -354,17 +355,18 @@ class Parser {
     }
 
     private void C() {
-        if (compareToken(Token.SEMICOLON)) {
-            matchToken(Token.SEMICOLON);
-        } else if (compareToken(Token.IDENTIFIER)) {
-            matchToken(Token.IDENTIFIER);
-            if (compareToken(Token.OPENING_BRACKETS)) {
-                matchToken(Token.OPENING_BRACKETS);
+        if (compareToken(Token.IDENTIFIER) || compareToken(Token.SEMICOLON)) {
+            if(compareToken(Token.IDENTIFIER)){
+                matchToken(Token.IDENTIFIER);
+                if (compareToken(Token.OPENING_BRACKETS)) {
+                    matchToken(Token.OPENING_BRACKETS);
+                    EXP();
+                    matchToken(Token.CLOSING_BRACKETS);
+                }
+                matchToken(Token.ATTRIBUTION);
                 EXP();
-                matchToken(Token.CLOSING_BRACKETS);
             }
-            matchToken(Token.ATTRIBUTION);
-            EXP();
+            matchToken(Token.SEMICOLON);
 
         } else if (compareToken(Token.FOR)) {
             matchToken(Token.FOR);
@@ -386,6 +388,8 @@ class Parser {
                 B();
             } else {
                 C();
+                matchToken(Token.SEMICOLON);
+
             }
 
         } else if (compareToken(Token.IF)) {
@@ -398,6 +402,7 @@ class Parser {
                 B();
             } else {
                 C();
+
             }
 
             if (compareToken(Token.ELSE)) {
@@ -406,6 +411,7 @@ class Parser {
                     B();
                 } else {
                     C();
+
                 }
             }
         } else if (compareToken(Token.READLN)) {
@@ -418,6 +424,7 @@ class Parser {
                 matchToken(Token.CLOSING_BRACKETS);
             }
             matchToken(Token.CLOSING_PARENTHESIS);
+            matchToken(Token.SEMICOLON);
         } else if (compareToken(Token.WRITE) || compareToken(Token.WRITELN)) {
             matchToken(symbol.getToken());
             matchToken(Token.OPENING_PARENTHESIS);
@@ -429,8 +436,11 @@ class Parser {
                 EXP();
             }
             matchToken(Token.CLOSING_PARENTHESIS);
-
+            matchToken(Token.SEMICOLON);
+        } else {
+            AssertType.unexpectedToken(symbol.getLexeme(), lexer.getLines());
         }
+
     }
 
     private void EXP() {
@@ -648,7 +658,7 @@ class Lexer {
     private void initialState() {
         if (checkSymbols(currentChar)) {
             CURRENT_STATE = FINAL_STATE;
-        } else if (currentChar == ' ' || (currentChar == '\n' || currentChar=='\r')) {
+        } else if (currentChar == ' ' || (currentChar == '\n' || currentChar=='\r') || (currentChar == EOF)) {
             CURRENT_STATE = INITIAL_STATE;
         } else if (AssertType.isNumericNotZero(currentChar)) {
             CURRENT_STATE = 1;
