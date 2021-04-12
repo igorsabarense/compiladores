@@ -319,6 +319,12 @@ class Parser {
                      }else if(compareToken(Token.EQUAL)){
                          matchToken(Token.EQUAL);
                          V();
+                     }else if(compareToken(Token.ATTRIBUTION)){
+                         matchToken(Token.ATTRIBUTION);
+                         if(compareToken(Token.PLUS_SIGN)){
+                             matchToken(Token.PLUS_SIGN);
+                         }
+                         V();
                      }
                  }while(compareToken(Token.COMMA) );
                  matchToken(Token.SEMICOLON);
@@ -366,22 +372,22 @@ class Parser {
                 matchToken(Token.ATTRIBUTION);
                 EXP();
             }
-            matchToken(Token.SEMICOLON);
+            if(compareToken(Token.SEMICOLON)) matchToken(Token.SEMICOLON);
 
         } else if (compareToken(Token.FOR)) {
             matchToken(Token.FOR);
             matchToken(Token.OPENING_PARENTHESIS);
 
-            while (compareToken(Token.IDENTIFIER) || compareToken(Token.COMMA)) {
+            do {
                 F();
-            }
+            }while(compareToken(Token.COMMA));
             matchToken(Token.SEMICOLON);
             EXP();
             matchToken(Token.SEMICOLON);
 
-            while (compareToken(Token.IDENTIFIER) || compareToken(Token.COMMA)) {
+            do {
                 F();
-            }
+            }while(compareToken(Token.COMMA));
             matchToken(Token.CLOSING_PARENTHESIS);
 
             if (compareToken(Token.OPENING_BRACES)) {
@@ -700,7 +706,9 @@ class Lexer {
             CURRENT_STATE = 12;
         } else if (AssertType.isHexa(currentChar)) {
             CURRENT_STATE = 13;
-        } else if (!AssertType.isHexa(currentChar) || !AssertType.isNumeric(currentChar)) {
+        } else if (currentChar == 'h') {
+            AssertType.lexemeNotIdentified(""+currentChar,lines);
+        } else{
             type = Type.INT;
             token = Token.CONST;
             returnChar();
@@ -918,7 +926,7 @@ class Lexer {
  * @return ;
  */
 class AssertType {
-    private static final Pattern validCharRegex = Pattern.compile("[\\s\\r\\n!?.,;{}=*()><\\[\\]:+=\"\\-\\/'%@\\d\\wáàâãéèêíïóôõöúçñÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ]");
+    private static final Pattern validCharRegex = Pattern.compile("[\\s\\r\\n!?.,;{}=*()><\\[\\]:+=\"\\-\\/'%@\\d\\w]");
     public static final char EOF = (char) -1;
 
     public static boolean isCharacter(char c) {
