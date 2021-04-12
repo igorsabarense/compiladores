@@ -34,7 +34,7 @@ public class LC {
  * Enum Type com os tipos de escalares ( INT | CHAR | BOOLEAN )
  */
 enum Type {
-    INT, CHAR, BOOLEAN;
+    INT, CHAR, BOOLEAN
 }
 
 /**
@@ -222,6 +222,7 @@ class Parser {
 
     private Lexer lexer;
     private Symbol symbol;
+    private boolean inFor = false;
 
     public Parser(Lexer lexer) {
 
@@ -361,91 +362,113 @@ class Parser {
     }
 
     private void C() {
-        if (compareToken(Token.IDENTIFIER) || compareToken(Token.SEMICOLON)) {
-            if(compareToken(Token.IDENTIFIER)){
-                matchToken(Token.IDENTIFIER);
-                if (compareToken(Token.OPENING_BRACKETS)) {
-                    matchToken(Token.OPENING_BRACKETS);
-                    EXP();
-                    matchToken(Token.CLOSING_BRACKETS);
-                }
-                matchToken(Token.ATTRIBUTION);
-                EXP();
-            }
-            if(compareToken(Token.SEMICOLON)) matchToken(Token.SEMICOLON);
+       if(compareToken(Token.SEMICOLON)){
+           matchToken(Token.SEMICOLON);
+       }else if(compareToken(Token.IDENTIFIER)){
+           IDEXP();
+       }else if(compareToken(Token.FOR)){
+           FOR();
+       }else if(compareToken(Token.IF)){
+           IF();
+       }else if(compareToken(Token.READLN)){
+           READLN();
+       }else if(compareToken(Token.WRITE) | compareToken(Token.WRITELN)){
+           WRITE();
+       } else {
+           AssertType.unexpectedToken(symbol.getLexeme(), lexer.getLines());
+       }
 
-        } else if (compareToken(Token.FOR)) {
-            matchToken(Token.FOR);
-            matchToken(Token.OPENING_PARENTHESIS);
 
-            do {
-                F();
-            }while(compareToken(Token.COMMA));
-            matchToken(Token.SEMICOLON);
+    }
+
+    private void WRITE() {
+        matchToken(symbol.getToken());
+        matchToken(Token.OPENING_PARENTHESIS);
+        EXP();
+
+        while (compareToken(Token.COMMA)) {
+
+            matchToken(Token.COMMA);
             EXP();
-            matchToken(Token.SEMICOLON);
-
-            do {
-                F();
-            }while(compareToken(Token.COMMA));
-            matchToken(Token.CLOSING_PARENTHESIS);
-
-            if (compareToken(Token.OPENING_BRACES)) {
-                B();
-            } else {
-                C();
-                matchToken(Token.SEMICOLON);
-
-            }
-
-        } else if (compareToken(Token.IF)) {
-            matchToken(Token.IF);
-            matchToken(Token.OPENING_PARENTHESIS);
-            EXP();
-            matchToken(Token.CLOSING_PARENTHESIS);
-            matchToken(Token.THEN);
-            if (compareToken(Token.OPENING_BRACES)) {
-                B();
-            } else {
-                C();
-
-            }
-
-            if (compareToken(Token.ELSE)) {
-                matchToken(Token.ELSE);
-                if (compareToken(Token.OPENING_BRACES)) {
-                    B();
-                } else {
-                    C();
-
-                }
-            }
-        } else if (compareToken(Token.READLN)) {
-            matchToken(Token.READLN);
-            matchToken(Token.OPENING_PARENTHESIS);
-            matchToken(Token.IDENTIFIER);
-            if (compareToken(Token.OPENING_BRACKETS)) {
-                matchToken(Token.OPENING_BRACKETS);
-                EXP();
-                matchToken(Token.CLOSING_BRACKETS);
-            }
-            matchToken(Token.CLOSING_PARENTHESIS);
-            matchToken(Token.SEMICOLON);
-        } else if (compareToken(Token.WRITE) || compareToken(Token.WRITELN)) {
-            matchToken(symbol.getToken());
-            matchToken(Token.OPENING_PARENTHESIS);
-            EXP();
-
-            while (compareToken(Token.COMMA)) {
-
-                matchToken(Token.COMMA);
-                EXP();
-            }
-            matchToken(Token.CLOSING_PARENTHESIS);
-            matchToken(Token.SEMICOLON);
-        } else {
-            AssertType.unexpectedToken(symbol.getLexeme(), lexer.getLines());
         }
+        matchToken(Token.CLOSING_PARENTHESIS);
+        matchToken(Token.SEMICOLON);
+
+    }
+
+    private void READLN() {
+        matchToken(Token.READLN);
+        matchToken(Token.OPENING_PARENTHESIS);
+        matchToken(Token.IDENTIFIER);
+        if (compareToken(Token.OPENING_BRACKETS)) {
+            matchToken(Token.OPENING_BRACKETS);
+            EXP();
+            matchToken(Token.CLOSING_BRACKETS);
+        }
+        matchToken(Token.CLOSING_PARENTHESIS);
+        matchToken(Token.SEMICOLON);
+    }
+
+    private void IF() {
+        matchToken(Token.IF);
+        matchToken(Token.OPENING_PARENTHESIS);
+        EXP();
+        matchToken(Token.CLOSING_PARENTHESIS);
+        matchToken(Token.THEN);
+        if (compareToken(Token.OPENING_BRACES)) {
+            B();
+        } else {
+            C();
+
+        }
+
+        if (compareToken(Token.ELSE)) {
+            matchToken(Token.ELSE);
+            if (compareToken(Token.OPENING_BRACES)) {
+                B();
+            } else {
+                C();
+
+            }
+        }
+    }
+
+    private void FOR() {
+        int i = 0;
+
+        matchToken(Token.FOR);
+        matchToken(Token.OPENING_PARENTHESIS);
+        if(compareToken(Token.IDENTIFIER) || compareToken(Token.SEMICOLON)){
+            inFor = true;
+            i = F();
+        }
+
+        if(i % 2 != 0 ) matchToken(Token.SEMICOLON);
+        EXP();
+        matchToken(Token.SEMICOLON);
+        if(compareToken(Token.IDENTIFIER) || compareToken(Token.SEMICOLON)){
+            inFor = true;
+            F();
+        }
+        inFor = false;
+        matchToken(Token.CLOSING_PARENTHESIS);
+        if(compareToken(Token.OPENING_BRACES)){
+            B();
+        }else{
+            C();
+        }
+    }
+
+    private void IDEXP() {
+        matchToken(Token.IDENTIFIER);
+        if (compareToken(Token.OPENING_BRACKETS)) {
+            matchToken(Token.OPENING_BRACKETS);
+            EXP();
+            matchToken(Token.CLOSING_BRACKETS);
+        }
+        matchToken(Token.ATTRIBUTION);
+        EXP();
+        if(!inFor) matchToken(Token.SEMICOLON);
 
     }
 
@@ -476,12 +499,18 @@ class Parser {
         }
     }
 
-    private void F() {
+    private int  F() {
+        int i = 0 ;
+
         C();
-        if (compareToken(Token.COMMA)) {
+        if(compareToken(Token.SEMICOLON)) i++;
+        while (compareToken(Token.COMMA)) {
             matchToken(Token.COMMA);
             C();
+            if(compareToken(Token.SEMICOLON)) i++;
         }
+        inFor = true;
+        return i;
     }
 
     private void TS() {
