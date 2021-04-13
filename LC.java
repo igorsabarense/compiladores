@@ -555,9 +555,10 @@ class Parser {
                 EXP();
                 matchToken(Token.CLOSING_BRACES);
             }
-        } else {
+        }else {
             AssertType.unexpectedToken(symbol.getLexeme(), lexer.getLines());
         }
+
     }
 }
 
