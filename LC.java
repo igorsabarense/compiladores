@@ -286,7 +286,11 @@ class Parser {
 
         matchToken(Token.MAIN);
 
-        B();
+        matchToken(Token.OPENING_BRACES);
+        while (hasToken(Arrays.asList(Token.SEMICOLON, Token.FOR, Token.IDENTIFIER, Token.IF, Token.READLN, Token.WRITE, Token.WRITELN))) {
+            C();
+        }
+        matchToken(Token.CLOSING_BRACES);
 
         matchToken(Token.END_OF_FILE);
 
@@ -335,17 +339,9 @@ class Parser {
 
     }
 
-    //B ->  "{" {C} "}"
-    private void B() {
-        matchToken(Token.OPENING_BRACES);
-        while (hasToken(Arrays.asList(Token.SEMICOLON, Token.FOR, Token.IDENTIFIER, Token.IF, Token.READLN, Token.WRITE, Token.WRITELN))) {
-            C();
-        }
-        matchToken(Token.CLOSING_BRACES);
 
-    }
 
-    //
+    //T-> int | boolean | char
     private void T(Token token) {
         matchToken(token);
     }
@@ -416,7 +412,11 @@ class Parser {
         matchToken(Token.CLOSING_PARENTHESIS);
         matchToken(Token.THEN);
         if (compareToken(Token.OPENING_BRACES)) {
-            B();
+            matchToken(Token.OPENING_BRACES);
+            while (hasToken(Arrays.asList(Token.SEMICOLON, Token.FOR, Token.IDENTIFIER, Token.IF, Token.READLN, Token.WRITE, Token.WRITELN))) {
+                C();
+            }
+            matchToken(Token.CLOSING_BRACES);
         } else {
             C();
 
@@ -425,7 +425,15 @@ class Parser {
         if (compareToken(Token.ELSE)) {
             matchToken(Token.ELSE);
             if (compareToken(Token.OPENING_BRACES)) {
-                B();
+                matchToken(Token.OPENING_BRACES);
+
+                do{
+                    C();
+                    if(compareToken(Token.SEMICOLON)) matchToken(Token.SEMICOLON);
+                }while (hasToken(Arrays.asList(Token.SEMICOLON, Token.FOR, Token.IDENTIFIER, Token.IF, Token.READLN, Token.WRITE, Token.WRITELN)));
+
+                matchToken(Token.CLOSING_BRACES);
+
             } else {
                 C();
 
@@ -452,8 +460,14 @@ class Parser {
         }
         inFor = false;
         matchToken(Token.CLOSING_PARENTHESIS);
-        if(compareToken(Token.OPENING_BRACES)){
-            B();
+        if(compareToken(Token.OPENING_BRACES)) {
+            matchToken(Token.OPENING_BRACES);
+            do{
+                C();
+                if(compareToken(Token.SEMICOLON)) matchToken(Token.SEMICOLON);
+            }while (hasToken(Arrays.asList(Token.SEMICOLON, Token.FOR, Token.IDENTIFIER, Token.IF, Token.READLN, Token.WRITE, Token.WRITELN)));
+
+            matchToken(Token.CLOSING_BRACES);
         }else{
             C();
         }
@@ -808,7 +822,7 @@ class Lexer {
 
     private void state10() {
 
-        if (currentChar != '$' && currentChar != '\n' && currentChar != '"') {
+        if (currentChar != '$' && (currentChar != '\n' && currentChar != '\r') && currentChar != '"') {
             CURRENT_STATE = 10;
         } else if (currentChar == '"') {
             CURRENT_STATE = FINAL_STATE;
