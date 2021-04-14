@@ -323,11 +323,17 @@ class Parser {
                     matchToken(Token.IDENTIFIER);
                     if (compareToken(Token.OPENING_BRACKETS)) {
                         matchToken(Token.OPENING_BRACKETS);
-                        matchToken(Token.CONST);
+                        if (symbol.getType() == Type.INT) {
+                            V();
+                        }
+//                        else if(compareToken(Token.IDENTIFIER)){
+//                            matchToken(Token.IDENTIFIER);
+//                        }
                         matchToken(Token.CLOSING_BRACKETS);
                     } else if (compareToken(Token.EQUAL)) {
                         matchToken(Token.EQUAL);
                         V();
+
                     } else if (compareToken(Token.ATTRIBUTION)) {
                         matchToken(Token.ATTRIBUTION);
                         if (compareToken(Token.PLUS_SIGN)) {
@@ -868,11 +874,17 @@ class Lexer {
     private void state14() {
         if (AssertType.isNumeric(currentChar)) {
             CURRENT_STATE = 1;
-        } else if (currentChar == 'h') {
-            CURRENT_STATE = FINAL_STATE;
+        } else if (currentChar == 'h' || !AssertType.isNumeric(currentChar)) {
+            if(currentChar == 'h') {
+                CURRENT_STATE = FINAL_STATE;
+            }else{
+                returnChar();
+            }
             token = Token.CONST;
             type = Type.INT;
-        } else {
+
+        }
+        else {
             AssertType.lexemeNotIdentified(lexeme, lines);
         }
     }
