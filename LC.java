@@ -247,6 +247,8 @@ class Parser {
             symbol = lexer.lexicalAnalysis();
         } else if (Objects.nonNull(symbol)) {
             AssertType.unexpectedToken(symbol.getLexeme(), lexer.getLines());
+        } else if (Objects.isNull(symbol) && !token.equals(Token.END_OF_FILE)) {
+            AssertType.unexpectedEOF(lexer.getLines());
         }
     }
 
@@ -270,14 +272,16 @@ class Parser {
      * @return true | false
      */
     private boolean compareToken(Token token) {
-        return symbol.getToken().equals(token);
+        if (symbol != null && symbol.getToken() != null) return symbol.getToken().equals(token);
+        else AssertType.unexpectedEOF(lexer.getLines());
+        return false;
     }
 
     private boolean compareType(Type type) {
         return symbol.getType().equals(type);
     }
 
-    // S -> {D} main B
+    // S -> {D} main { "{" C "}" }
     public void S() {
 
         while (hasToken(Arrays.asList(Token.FINAL, Token.INT, Token.CHAR, Token.BOOLEAN))) {
@@ -298,7 +302,7 @@ class Parser {
 
     //D -> T id({,id} | = V | ["[V]"]); | final id = V;
     private void D() {
-        switch(symbol.getToken()){
+        switch (symbol.getToken()) {
 
             case FINAL:
                 matchToken(Token.FINAL);
@@ -306,39 +310,38 @@ class Parser {
                 matchToken(Token.EQUAL);
                 V();
                 matchToken(Token.SEMICOLON);
-            break;
+                break;
 
             case BOOLEAN:
             case CHAR:
             case INT:
-                 matchToken(symbol.getToken());
-                 do{
-                     if(compareToken(Token.COMMA)){
-                         matchToken(Token.COMMA);
-                     }
-                     matchToken(Token.IDENTIFIER);
-                     if(compareToken(Token.OPENING_BRACKETS)){
-                         matchToken(Token.OPENING_BRACKETS);
-                         matchToken(Token.CONST);
-                         matchToken(Token.CLOSING_BRACKETS);
-                     }else if(compareToken(Token.EQUAL)){
-                         matchToken(Token.EQUAL);
-                         V();
-                     }else if(compareToken(Token.ATTRIBUTION)){
-                         matchToken(Token.ATTRIBUTION);
-                         if(compareToken(Token.PLUS_SIGN)){
-                             matchToken(Token.PLUS_SIGN);
-                         }
-                         V();
-                     }
-                 }while(compareToken(Token.COMMA) );
-                 matchToken(Token.SEMICOLON);
-            break;
+                matchToken(symbol.getToken());
+                do {
+                    if (compareToken(Token.COMMA)) {
+                        matchToken(Token.COMMA);
+                    }
+                    matchToken(Token.IDENTIFIER);
+                    if (compareToken(Token.OPENING_BRACKETS)) {
+                        matchToken(Token.OPENING_BRACKETS);
+                        matchToken(Token.CONST);
+                        matchToken(Token.CLOSING_BRACKETS);
+                    } else if (compareToken(Token.EQUAL)) {
+                        matchToken(Token.EQUAL);
+                        V();
+                    } else if (compareToken(Token.ATTRIBUTION)) {
+                        matchToken(Token.ATTRIBUTION);
+                        if (compareToken(Token.PLUS_SIGN)) {
+                            matchToken(Token.PLUS_SIGN);
+                        }
+                        V();
+                    }
+                } while (compareToken(Token.COMMA));
+                matchToken(Token.SEMICOLON);
+                break;
 
         }
 
     }
-
 
 
     //T-> int | boolean | char
@@ -354,25 +357,27 @@ class Parser {
             matchToken(Token.CONST);
         } else if (compareToken(Token.TRUE) || compareToken(Token.FALSE)) {
             matchToken(symbol.getToken());
+        } else {
+            AssertType.unexpectedToken(symbol.getLexeme(), lexer.getLines());
         }
     }
 
     private void C() {
-       if(compareToken(Token.SEMICOLON)){
-           matchToken(Token.SEMICOLON);
-       }else if(compareToken(Token.IDENTIFIER)){
-           IDEXP();
-       }else if(compareToken(Token.FOR)){
-           FOR();
-       }else if(compareToken(Token.IF)){
-           IF();
-       }else if(compareToken(Token.READLN)){
-           READLN();
-       }else if(compareToken(Token.WRITE) | compareToken(Token.WRITELN)){
-           WRITE();
-       } else {
-           AssertType.unexpectedToken(symbol.getLexeme(), lexer.getLines());
-       }
+        if (compareToken(Token.SEMICOLON)) {
+            matchToken(Token.SEMICOLON);
+        } else if (compareToken(Token.IDENTIFIER)) {
+            IDEXP();
+        } else if (compareToken(Token.FOR)) {
+            FOR();
+        } else if (compareToken(Token.IF)) {
+            IF();
+        } else if (compareToken(Token.READLN)) {
+            READLN();
+        } else if (compareToken(Token.WRITE) || compareToken(Token.WRITELN)) {
+            WRITE();
+        } else {
+            AssertType.unexpectedToken(symbol.getLexeme(), lexer.getLines());
+        }
 
 
     }
@@ -427,10 +432,10 @@ class Parser {
             if (compareToken(Token.OPENING_BRACES)) {
                 matchToken(Token.OPENING_BRACES);
 
-                do{
+                do {
                     C();
-                    if(compareToken(Token.SEMICOLON)) matchToken(Token.SEMICOLON);
-                }while (hasToken(Arrays.asList(Token.SEMICOLON, Token.FOR, Token.IDENTIFIER, Token.IF, Token.READLN, Token.WRITE, Token.WRITELN)));
+                    if (compareToken(Token.SEMICOLON)) matchToken(Token.SEMICOLON);
+                } while (hasToken(Arrays.asList(Token.SEMICOLON, Token.FOR, Token.IDENTIFIER, Token.IF, Token.READLN, Token.WRITE, Token.WRITELN)));
 
                 matchToken(Token.CLOSING_BRACES);
 
@@ -442,33 +447,31 @@ class Parser {
     }
 
     private void FOR() {
-        int i = 0;
+
 
         matchToken(Token.FOR);
         matchToken(Token.OPENING_PARENTHESIS);
-        if(compareToken(Token.IDENTIFIER) || compareToken(Token.SEMICOLON)){
-            inFor = true;
-            i = F();
-        }
 
-        if(i % 2 != 0 ) matchToken(Token.SEMICOLON);
+        F();
+
+
+        matchToken(Token.SEMICOLON);
         EXP();
         matchToken(Token.SEMICOLON);
-        if(compareToken(Token.IDENTIFIER) || compareToken(Token.SEMICOLON)){
-            inFor = true;
-            F();
-        }
+
+        F();
+
         inFor = false;
         matchToken(Token.CLOSING_PARENTHESIS);
-        if(compareToken(Token.OPENING_BRACES)) {
+        if (compareToken(Token.OPENING_BRACES)) {
             matchToken(Token.OPENING_BRACES);
-            do{
+            do {
                 C();
-                if(compareToken(Token.SEMICOLON)) matchToken(Token.SEMICOLON);
-            }while (hasToken(Arrays.asList(Token.SEMICOLON, Token.FOR, Token.IDENTIFIER, Token.IF, Token.READLN, Token.WRITE, Token.WRITELN)));
+                if (compareToken(Token.SEMICOLON)) matchToken(Token.SEMICOLON);
+            } while (hasToken(Arrays.asList(Token.SEMICOLON, Token.FOR, Token.IDENTIFIER, Token.IF, Token.READLN, Token.WRITE, Token.WRITELN)));
 
             matchToken(Token.CLOSING_BRACES);
-        }else{
+        } else {
             C();
         }
     }
@@ -482,7 +485,7 @@ class Parser {
         }
         matchToken(Token.ATTRIBUTION);
         EXP();
-        if(!inFor) matchToken(Token.SEMICOLON);
+        //if(!inFor) matchToken(Token.SEMICOLON);
 
     }
 
@@ -513,18 +516,16 @@ class Parser {
         }
     }
 
-    private int  F() {
-        int i = 0 ;
+    private void F() {
+
 
         C();
-        if(compareToken(Token.SEMICOLON)) i++;
+        //if(compareToken(Token.SEMICOLON)) i++;
         while (compareToken(Token.COMMA)) {
             matchToken(Token.COMMA);
             C();
-            if(compareToken(Token.SEMICOLON)) i++;
         }
-        inFor = true;
-        return i;
+
     }
 
     private void TS() {
@@ -555,7 +556,7 @@ class Parser {
                 EXP();
                 matchToken(Token.CLOSING_BRACES);
             }
-        }else {
+        } else {
             AssertType.unexpectedToken(symbol.getLexeme(), lexer.getLines());
         }
 
@@ -568,20 +569,16 @@ class Parser {
  */
 class Lexer {
 
+    private static final char EOF = (char) -1;
     private SymbolTable symbolTable = new SymbolTable();
     private String symbols = "=(),+-*;{}%[]";
-
     private BufferedReader bufferedReader;
-
     //Symbol creation;
     private String lexeme = "";
     private Type type;
     private Token token;
-
     private char currentChar = ' ';
     private Character previousChar = null;
-    private static final char EOF = (char) -1;
-
     private Byte INITIAL_STATE = 0;
     private Byte CURRENT_STATE = 0;
     private Byte FINAL_STATE = 127;
@@ -595,6 +592,8 @@ class Lexer {
     public int getLines() {
         return lines;
     }
+
+
 
 
     /**
@@ -712,7 +711,7 @@ class Lexer {
     private void initialState() {
         if (checkSymbols(currentChar)) {
             CURRENT_STATE = FINAL_STATE;
-        } else if (currentChar == ' ' || (currentChar == '\n' || currentChar=='\r') || (currentChar == EOF)) {
+        } else if (currentChar == ' ' || (currentChar == '\n' || currentChar == '\r') || (currentChar == EOF)) {
             CURRENT_STATE = INITIAL_STATE;
         } else if (AssertType.isNumericNotZero(currentChar)) {
             CURRENT_STATE = 1;
@@ -755,8 +754,8 @@ class Lexer {
         } else if (AssertType.isHexa(currentChar)) {
             CURRENT_STATE = 13;
         } else if (currentChar == 'h') {
-            AssertType.lexemeNotIdentified(""+currentChar,lines);
-        } else{
+            AssertType.lexemeNotIdentified("" + currentChar, lines);
+        } else {
             type = Type.INT;
             token = Token.CONST;
             returnChar();
@@ -808,8 +807,10 @@ class Lexer {
     }
 
     private void state8() {
-        if (AssertType.isCharacter(currentChar) || AssertType.isNumeric(currentChar)) {
+        if (currentChar != '\n' && currentChar != '\r' && currentChar != '$') {
             CURRENT_STATE = 11;
+        } else {
+            AssertType.lexemeNotIdentified(lexeme, getLines());
         }
     }
 
