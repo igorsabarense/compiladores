@@ -307,6 +307,7 @@ class Parser {
             case FINAL:
                 matchToken(Token.FINAL);
                 matchToken(Token.IDENTIFIER);
+
                 matchToken(Token.EQUAL);
                 V();
                 matchToken(Token.SEMICOLON);
@@ -560,7 +561,7 @@ class Parser {
             if (compareToken(Token.OPENING_BRACKETS)) {
                 matchToken(Token.OPENING_BRACKETS);
                 EXP();
-                matchToken(Token.CLOSING_BRACES);
+                matchToken(Token.CLOSING_BRACKETS);
             }
         } else {
             AssertType.unexpectedToken(symbol.getLexeme(), lexer.getLines());
