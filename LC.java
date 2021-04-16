@@ -10,6 +10,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+
 /**
  * @author Igor Sabarense
  * @author Frederico Terrinha
@@ -285,7 +286,7 @@ class Parser {
     // S -> {D} main { "{" C "}" }
     public void S() {
 
-        while (hasToken(Arrays.asList(Token.FINAL, Token.INT, Token.CHAR, Token.BOOLEAN))) {
+         while (hasToken(Arrays.asList(Token.FINAL, Token.INT, Token.CHAR, Token.BOOLEAN))) {
             D();
         }
 
@@ -605,7 +606,7 @@ class Lexer {
     private SymbolTable symbolTable = new SymbolTable();
     private String symbols = "=(),+-*;{}%[]";
     private BufferedReader bufferedReader;
-    //Symbol creation;
+    //Symbol creation
     private String lexeme = "";
     private Type type;
     private Token token;
@@ -926,22 +927,25 @@ class Lexer {
     }
 
     private void state16() {
-        if (currentChar == '*') {
-            CURRENT_STATE = 17;
-        } else if (currentChar == EOF) {
+
+        if (currentChar == EOF) {
             AssertType.unexpectedEOF(lines);
+        } else if (currentChar == '*') {
+            CURRENT_STATE = 17;
         } else {
             CURRENT_STATE = 16;
         }
     }
 
     private void state17() {
-        if (currentChar != '/') {
-            CURRENT_STATE = 16;
-        } else {
+        if (currentChar == '/') {
             CURRENT_STATE = INITIAL_STATE;
             lexeme = "";
             readCharacter();
+        } else if (currentChar == '*') {
+          CURRENT_STATE = 17;
+        }else{
+            CURRENT_STATE = 16;
         }
     }
 
