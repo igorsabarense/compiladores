@@ -216,13 +216,14 @@ class SymbolTable extends HashSet<Symbol> {
 }
 
 /**
- * Analisador Sintatico, realiza a análise semântica do programa L.
+ * Analisador Sintatico, realiza a análise sintática do programa L.
  */
 class Parser {
 
     private Lexer lexer;
     private Symbol symbol;
-    private boolean inFor = false;
+    private boolean expression = false;
+
 
     public Parser(Lexer lexer) {
 
@@ -326,6 +327,10 @@ class Parser {
                         matchToken(Token.OPENING_BRACKETS);
                         if (symbol.getType() == Type.INT) {
                             V();
+                        }else if(symbol.getType()!= Type.INT && compareToken(Token.CONST)){
+                            EXP();
+                        }else{
+                            AssertType.unexpectedToken(symbol.getLexeme(), lexer.getLines());
                         }
 //                        else if(compareToken(Token.IDENTIFIER)){
 //                            matchToken(Token.IDENTIFIER);
@@ -335,7 +340,8 @@ class Parser {
                         matchToken(Token.EQUAL);
                         V();
 
-                    } else if (compareToken(Token.ATTRIBUTION)) {
+                    }
+                    else if (compareToken(Token.ATTRIBUTION)) {
                         matchToken(Token.ATTRIBUTION);
                         if (compareToken(Token.PLUS_SIGN)) {
                             matchToken(Token.PLUS_SIGN);
@@ -344,7 +350,7 @@ class Parser {
                     }
                 } while (compareToken(Token.COMMA));
                 matchToken(Token.SEMICOLON);
-                break;
+
 
         }
 
@@ -398,9 +404,12 @@ class Parser {
 
             matchToken(Token.COMMA);
             EXP();
+            expression = false;
         }
         matchToken(Token.CLOSING_PARENTHESIS);
         matchToken(Token.SEMICOLON);
+        expression = false;
+
 
     }
 
@@ -411,6 +420,7 @@ class Parser {
         if (compareToken(Token.OPENING_BRACKETS)) {
             matchToken(Token.OPENING_BRACKETS);
             EXP();
+            expression = false;
             matchToken(Token.CLOSING_BRACKETS);
         }
         matchToken(Token.CLOSING_PARENTHESIS);
@@ -425,12 +435,16 @@ class Parser {
         matchToken(Token.THEN);
         if (compareToken(Token.OPENING_BRACES)) {
             matchToken(Token.OPENING_BRACES);
-            while (hasToken(Arrays.asList(Token.SEMICOLON, Token.FOR, Token.IDENTIFIER, Token.IF, Token.READLN, Token.WRITE, Token.WRITELN))) {
+            do{
                 C();
-            }
+            }while (hasToken(Arrays.asList(Token.SEMICOLON, Token.FOR, Token.IDENTIFIER, Token.IF, Token.READLN, Token.WRITE, Token.WRITELN)));
             matchToken(Token.CLOSING_BRACES);
         } else {
             C();
+            if(expression){
+                matchToken(Token.SEMICOLON);
+                expression = false;
+            }
 
         }
 
@@ -453,6 +467,8 @@ class Parser {
         }
     }
 
+
+    private boolean firstTime = false;
     private void FOR() {
 
 
@@ -461,14 +477,17 @@ class Parser {
 
         F();
 
+        if((firstTime && compareToken(Token.SEMICOLON)) || compareToken(Token.SEMICOLON))  matchToken(Token.SEMICOLON);
 
-        matchToken(Token.SEMICOLON);
+
+
         EXP();
+
         matchToken(Token.SEMICOLON);
 
-        F();
+        if(!compareToken(Token.CLOSING_PARENTHESIS)) F();
 
-        inFor = false;
+
         matchToken(Token.CLOSING_PARENTHESIS);
         if (compareToken(Token.OPENING_BRACES)) {
             matchToken(Token.OPENING_BRACES);
@@ -481,6 +500,8 @@ class Parser {
         } else {
             C();
         }
+
+
     }
 
     private void IDEXP() {
@@ -492,7 +513,7 @@ class Parser {
         }
         matchToken(Token.ATTRIBUTION);
         EXP();
-        //if(!inFor) matchToken(Token.SEMICOLON);
+        expression = true;
 
     }
 
@@ -524,14 +545,17 @@ class Parser {
     }
 
     private void F() {
-
-
+            if(compareToken(Token.SEMICOLON)){
+                firstTime = true;
+            }else {
+                firstTime = false;
+            }
         C();
-        //if(compareToken(Token.SEMICOLON)) i++;
         while (compareToken(Token.COMMA)) {
             matchToken(Token.COMMA);
             C();
         }
+
 
     }
 
@@ -831,7 +855,7 @@ class Lexer {
 
     private void state10() {
 
-        if (currentChar != '$' && (currentChar != '\n' && currentChar != '\r') && currentChar != '"') {
+        if (currentChar != '$' && (currentChar != '\n' && currentChar != '\r') && currentChar != '\"') {
             CURRENT_STATE = 10;
         } else if (currentChar == '"') {
             CURRENT_STATE = FINAL_STATE;
