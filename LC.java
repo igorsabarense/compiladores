@@ -465,6 +465,7 @@ class Parser {
 
             }
         }
+        expression = false;
     }
 
 
