@@ -881,7 +881,9 @@ class Lexer {
         } else if (AssertType.isHexa(currentChar)) {
             CURRENT_STATE = 18;
         } else {
-            AssertType.lexemeNotIdentified(lexeme, lines);
+            token = Token.CONST;
+            type = Type.INT;
+           returnChar();
         }
     }
 
