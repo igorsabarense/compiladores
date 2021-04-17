@@ -407,14 +407,25 @@ class Parser {
     private void READLN() {
         matchToken(Token.READLN);
         matchToken(Token.OPENING_PARENTHESIS);
-        matchToken(Token.IDENTIFIER);
-        if (compareToken(Token.OPENING_BRACKETS)) {
-            matchToken(Token.OPENING_BRACKETS);
-            EXP();
-            matchToken(Token.CLOSING_BRACKETS);
+        if(compareToken(Token.IDENTIFIER)){
+            matchToken(Token.IDENTIFIER);
+            if (compareToken(Token.OPENING_BRACKETS)) {
+                matchToken(Token.OPENING_BRACKETS);
+                EXP();
+                matchToken(Token.CLOSING_BRACKETS);
+            }
+            matchToken(Token.CLOSING_PARENTHESIS);
+            if (inFor == 0 ) matchToken(Token.SEMICOLON);
+        }else if(hasToken(Arrays.asList(Token.CONST, Token.MINUS_SIGN))){
+            if(compareToken(Token.MINUS_SIGN)){
+                matchToken(Token.MINUS_SIGN);
+            }
+            matchToken(Token.CONST);
+            matchToken(Token.CLOSING_PARENTHESIS);
+            if (inFor == 0 ) matchToken(Token.SEMICOLON);
+
         }
-        matchToken(Token.CLOSING_PARENTHESIS);
-        if (inFor == 0 ) matchToken(Token.SEMICOLON);
+
     }
 
     private void IF() {
