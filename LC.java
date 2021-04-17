@@ -223,7 +223,6 @@ class Parser {
 
     private Lexer lexer;
     private Symbol symbol;
-    private boolean expression = false;
 
 
     public Parser(Lexer lexer) {
@@ -333,14 +332,11 @@ class Parser {
                         }else{
                             AssertType.unexpectedToken(symbol.getLexeme(), lexer.getLines());
                         }
-//                        else if(compareToken(Token.IDENTIFIER)){
-//                            matchToken(Token.IDENTIFIER);
-//                        }
+
                         matchToken(Token.CLOSING_BRACKETS);
                     } else if (compareToken(Token.EQUAL)) {
                         matchToken(Token.EQUAL);
                         V();
-
                     }
                     else if (compareToken(Token.ATTRIBUTION)) {
                         matchToken(Token.ATTRIBUTION);
@@ -351,10 +347,7 @@ class Parser {
                     }
                 } while (compareToken(Token.COMMA));
                 matchToken(Token.SEMICOLON);
-
-
         }
-
     }
 
 
@@ -375,12 +368,12 @@ class Parser {
             AssertType.unexpectedToken(symbol.getLexeme(), lexer.getLines());
         }
     }
-
+    private int inFor = 0;
     private void C() {
         if (compareToken(Token.SEMICOLON)) {
             matchToken(Token.SEMICOLON);
         } else if (compareToken(Token.IDENTIFIER)) {
-            IDEXP();
+            ATTR();
         } else if (compareToken(Token.FOR)) {
             FOR();
         } else if (compareToken(Token.IF)) {
@@ -405,12 +398,9 @@ class Parser {
 
             matchToken(Token.COMMA);
             EXP();
-            expression = false;
         }
         matchToken(Token.CLOSING_PARENTHESIS);
-        matchToken(Token.SEMICOLON);
-        expression = false;
-
+        if (inFor == 0 ) matchToken(Token.SEMICOLON);
 
     }
 
@@ -421,11 +411,10 @@ class Parser {
         if (compareToken(Token.OPENING_BRACKETS)) {
             matchToken(Token.OPENING_BRACKETS);
             EXP();
-            expression = false;
             matchToken(Token.CLOSING_BRACKETS);
         }
         matchToken(Token.CLOSING_PARENTHESIS);
-        matchToken(Token.SEMICOLON);
+        if (inFor == 0 ) matchToken(Token.SEMICOLON);
     }
 
     private void IF() {
@@ -442,10 +431,6 @@ class Parser {
             matchToken(Token.CLOSING_BRACES);
         } else {
             C();
-            if(expression){
-                matchToken(Token.SEMICOLON);
-                expression = false;
-            }
 
         }
 
@@ -466,14 +451,13 @@ class Parser {
 
             }
         }
-        expression = false;
     }
 
 
     private boolean firstTime = false;
     private void FOR() {
 
-
+        inFor++;
         matchToken(Token.FOR);
         matchToken(Token.OPENING_PARENTHESIS);
 
@@ -489,24 +473,26 @@ class Parser {
 
         if(!compareToken(Token.CLOSING_PARENTHESIS)) F();
 
-
         matchToken(Token.CLOSING_PARENTHESIS);
         if (compareToken(Token.OPENING_BRACES)) {
             matchToken(Token.OPENING_BRACES);
-            do {
-                C();
-                if (compareToken(Token.SEMICOLON)) matchToken(Token.SEMICOLON);
-            } while (hasToken(Arrays.asList(Token.SEMICOLON, Token.FOR, Token.IDENTIFIER, Token.IF, Token.READLN, Token.WRITE, Token.WRITELN)));
+            if (compareToken(Token.CLOSING_BRACES)){
+                matchToken(Token.CLOSING_BRACES);
+            }else {
+                do {
+                    C();
+                    if (compareToken(Token.SEMICOLON)) matchToken(Token.SEMICOLON);
+                } while (hasToken(Arrays.asList(Token.SEMICOLON, Token.FOR, Token.IDENTIFIER, Token.IF, Token.READLN, Token.WRITE, Token.WRITELN)));
+                matchToken(Token.CLOSING_BRACES);
+            }
 
-            matchToken(Token.CLOSING_BRACES);
         } else {
             C();
         }
-
-
+        inFor--;
     }
 
-    private void IDEXP() {
+    private void ATTR() {
         matchToken(Token.IDENTIFIER);
         if (compareToken(Token.OPENING_BRACKETS)) {
             matchToken(Token.OPENING_BRACKETS);
@@ -515,7 +501,7 @@ class Parser {
         }
         matchToken(Token.ATTRIBUTION);
         EXP();
-        expression = true;
+        if (inFor == 0 ) matchToken(Token.SEMICOLON);
 
     }
 
