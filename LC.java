@@ -300,7 +300,6 @@ class Parser {
         matchToken(Token.END_OF_FILE);
 
     }
-
     //D -> T id({,id} | = V | ["[V]"]); | final id = V;
     private void D() {
         switch (symbol.getToken()) {
@@ -318,11 +317,14 @@ class Parser {
             case CHAR:
             case INT:
                 matchToken(symbol.getToken());
+                matchToken(Token.IDENTIFIER);
+
                 do {
                     if (compareToken(Token.COMMA)) {
                         matchToken(Token.COMMA);
+                        matchToken(Token.IDENTIFIER);
                     }
-                    matchToken(Token.IDENTIFIER);
+//
                     if (compareToken(Token.OPENING_BRACKETS)) {
                         matchToken(Token.OPENING_BRACKETS);
                         if (symbol.getType() == Type.INT) {
@@ -345,6 +347,7 @@ class Parser {
                         }
                         V();
                     }
+
                 } while (compareToken(Token.COMMA));
                 matchToken(Token.SEMICOLON);
         }
@@ -407,24 +410,23 @@ class Parser {
     private void READLN() {
         matchToken(Token.READLN);
         matchToken(Token.OPENING_PARENTHESIS);
-        if(compareToken(Token.IDENTIFIER)){
-            matchToken(Token.IDENTIFIER);
-            if (compareToken(Token.OPENING_BRACKETS)) {
-                matchToken(Token.OPENING_BRACKETS);
-                EXP();
-                matchToken(Token.CLOSING_BRACKETS);
-            }
-            matchToken(Token.CLOSING_PARENTHESIS);
-            if (inFor == 0 ) matchToken(Token.SEMICOLON);
-        }else if(hasToken(Arrays.asList(Token.CONST, Token.MINUS_SIGN))){
-            if(compareToken(Token.MINUS_SIGN)){
-                matchToken(Token.MINUS_SIGN);
-            }
-            matchToken(Token.CONST);
-            matchToken(Token.CLOSING_PARENTHESIS);
-            if (inFor == 0 ) matchToken(Token.SEMICOLON);
-
+        matchToken(Token.IDENTIFIER);
+        if (compareToken(Token.OPENING_BRACKETS)) {
+            matchToken(Token.OPENING_BRACKETS);
+            EXP();
+            matchToken(Token.CLOSING_BRACKETS);
         }
+        matchToken(Token.CLOSING_PARENTHESIS);
+        if (inFor == 0) matchToken(Token.SEMICOLON);
+//        else if(hasToken(Arrays.asList(Token.CONST, Token.MINUS_SIGN))){
+//            if(compareToken(Token.MINUS_SIGN)){
+//                matchToken(Token.MINUS_SIGN);
+//            }
+//            matchToken(Token.CONST);
+//            matchToken(Token.CLOSING_PARENTHESIS);
+//            if (inFor == 0 ) matchToken(Token.SEMICOLON);
+//
+//        }
 
     }
 
@@ -475,8 +477,6 @@ class Parser {
         F();
 
         if((firstTime && compareToken(Token.SEMICOLON)) || compareToken(Token.SEMICOLON))  matchToken(Token.SEMICOLON);
-
-
 
         EXP();
 
