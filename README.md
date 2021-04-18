@@ -26,26 +26,29 @@ T -> TIPO
 V -> CONSTANTE
 EXP -> EXPRESSAO
 
-S -> {D} main B
+S -> {D} main "{" {C} "}" EOF
 
-B ->  "{" {C} "}"
 
-D -> T id({,id} | = V | ["[const | const_hexa]"]); | final id = V;
+D -> T id[{,id} | = V | ["[const]"] |:= [+] V ]; | final id = V;
 T -> int | char | boolean
 V -> [-] const | const_hexa | (TRUE | FALSE)
-C -> ; |
-     id["["EXP"]"] := EXP |
-     for "(" {F} ; EXP ; {F} ")" ( C | B ) |
-     if "(" EXP ")" then (C|B) [else (C|B)] |
-     readln"("id[EXP]"]")" |
-     write"("EXP{,EXP}")" |
-     writeln"("EXP{,EXP}")"
+C -> ; | ATTR | FOR | IF | WRITE | READLN
+F -> C{,C}
 
-F -> C[,C]
+ATTR ->  id["["EXP"]"] := EXP[;]
+FOR ->  for "(" [F] ; EXP ; [F] ")" ( C | "{" {C;} "}" )
+IF ->   if "(" EXP ")" then (C| "{" {C} "}") [else (C| "{" {C;} "}")]
+READLN ->  readln"(" id["["EXP]"]" ")"[;]
+WRITE -> write"("EXP{,EXP}")"[;] |  writeln"("EXP{,EXP}")"[;]
+
 EXP -> EXPS [(= | <> | < | > | <= | >= ) EXPS]
-EXPS -> [+|-] TS { + | - | or ) TS}
+EXPS -> [+|-] TS {( + | - | or ) TS}
 TS -> FS {(* | / | % | and ) FS}
 FS -> not FS | "("EXP")" | V | id["["EXP"]"]
+
+
+
+
 ```
 
 
