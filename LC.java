@@ -490,10 +490,13 @@ class Parser {
         matchToken(symbol.getToken());
         matchToken(Token.OPENING_PARENTHESIS);
         EXP();
-
         while (compareToken(Token.COMMA)) {
-
             matchToken(Token.COMMA);
+
+            if(compareToken(Token.IDENTIFIER)){
+                checkIfHasBeenDeclared(symbol);
+            }
+
             EXP();
         }
         matchToken(Token.CLOSING_PARENTHESIS);
@@ -504,6 +507,7 @@ class Parser {
     private void READLN() {
         matchToken(Token.READLN);
         matchToken(Token.OPENING_PARENTHESIS);
+        checkIfHasBeenDeclared(symbol);
         matchToken(Token.IDENTIFIER);
         if (compareToken(Token.OPENING_BRACKETS)) {
             matchToken(Token.OPENING_BRACKETS);
@@ -598,6 +602,8 @@ class Parser {
     }
 
     private void ATTR() {
+        if(inFor == 0) checkIfHasBeenDeclared(symbol);
+
         matchToken(Token.IDENTIFIER);
         if (compareToken(Token.OPENING_BRACKETS)) {
             matchToken(Token.OPENING_BRACKETS);
@@ -608,6 +614,12 @@ class Parser {
         EXP();
         if (inFor == 0 ) matchToken(Token.SEMICOLON);
 
+    }
+
+    private void checkIfHasBeenDeclared(Symbol symbol) {
+        if(Objects.isNull(symbol.getClasse())){
+            AssertType.identifierNotDeclared(lexer.getLines(), symbol.getLexeme());
+        }
     }
 
     private void EXP() {
@@ -1170,6 +1182,11 @@ class AssertType {
 
     public static void sizeExceedsLimitsOfArray(int lines) {
         System.out.printf("%d\ntamanho do vetor excede o maximo permitido.", lines);
+        System.exit(1);
+    }
+
+    public static void identifierNotDeclared(int lines, String lexeme) {
+        System.out.printf("%d\nidentificador nao declarado [%s].", lines, lexeme);
         System.exit(1);
     }
 }
