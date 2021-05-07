@@ -95,6 +95,10 @@ enum Token {
 
 }
 
+enum Classe {
+    CLASSE_VAR, CLASSE_CONST
+}
+
 /**
  * Classe Symbol , contem : token , lexema e tipo
  **/
@@ -102,22 +106,54 @@ class Symbol {
 
     private Token token;
     private Type type;
+
+    private Classe classe;
+
+    private int size;
+
     private String lexeme;
 
     public Symbol() {
-
+        this.size = 0;
     }
 
     public Symbol(String lexeme, Token token) {
         this.token = token;
         this.lexeme = lexeme;
+        this.size = 0;
     }
 
     public Symbol(Token token, Type type, String lexeme) {
         this.token = token;
         this.lexeme = lexeme;
         this.type = type;
+        this.size = 0;
     }
+
+    public Symbol(String lexeme, Token token, int size) {
+        this.token = token;
+        this.lexeme = lexeme;
+        this.size = size;
+        this.type = null;
+
+    }
+
+    public Symbol(Token token, Type type, int size , String lexeme) {
+        this.token = token;
+        this.lexeme = lexeme;
+        this.type = type;
+        this.size = size;
+    }
+
+
+    public int getSize() {
+        return size;
+    }
+
+    public void setSize(int size) {
+        this.size = size;
+    }
+
 
     public Token getToken() {
         return token;
@@ -143,6 +179,14 @@ class Symbol {
         this.lexeme = lexeme;
     }
 
+    public Classe getClasse() {
+        return classe;
+    }
+
+    public void setClasse(Classe classe) {
+        this.classe = classe;
+    }
+
     @Override
     public String toString() {
         return type != null ? "Symbol{" +
@@ -164,43 +208,43 @@ class Symbol {
 class SymbolTable extends HashSet<Symbol> {
 
     public SymbolTable() {
-        this.add(new Symbol("final", Token.FINAL));
-        this.add(new Symbol("int", Token.INT));
-        this.add(new Symbol("char", Token.CHAR));
-        this.add(new Symbol("boolean", Token.BOOLEAN));
-        this.add(new Symbol("for", Token.FOR));
-        this.add(new Symbol("if", Token.IF));
-        this.add(new Symbol("else", Token.ELSE));
-        this.add(new Symbol(Token.TRUE, Type.BOOLEAN, "TRUE"));
-        this.add(new Symbol(Token.FALSE, Type.BOOLEAN, "FALSE"));
-        this.add(new Symbol("and", Token.AND));
-        this.add(new Symbol("or", Token.OR));
-        this.add(new Symbol("not", Token.NOT));
-        this.add(new Symbol(":=", Token.ATTRIBUTION));
-        this.add(new Symbol("=", Token.EQUAL));
-        this.add(new Symbol("(", Token.OPENING_PARENTHESIS));
-        this.add(new Symbol(")", Token.CLOSING_PARENTHESIS));
-        this.add(new Symbol("<", Token.LT));
-        this.add(new Symbol(">", Token.GT));
-        this.add(new Symbol("<>", Token.NOT_EQUAL));
-        this.add(new Symbol(">=", Token.GTOE));
-        this.add(new Symbol("<=", Token.LTOE));
-        this.add(new Symbol(",", Token.COMMA));
-        this.add(new Symbol("+", Token.PLUS_SIGN));
-        this.add(new Symbol("-", Token.MINUS_SIGN));
-        this.add(new Symbol("*", Token.ASTERISK));
-        this.add(new Symbol("/", Token.SLASH));
-        this.add(new Symbol(";", Token.SEMICOLON));
-        this.add(new Symbol("{", Token.OPENING_BRACES));
-        this.add(new Symbol("}", Token.CLOSING_BRACES));
-        this.add(new Symbol("then", Token.THEN));
-        this.add(new Symbol("readln", Token.READLN));
-        this.add(new Symbol("write", Token.WRITE));
-        this.add(new Symbol("writeln", Token.WRITELN));
-        this.add(new Symbol("%", Token.PERCENTAGE));
-        this.add(new Symbol("[", Token.OPENING_BRACKETS));
-        this.add(new Symbol("]", Token.CLOSING_BRACKETS));
-        this.add(new Symbol("main", Token.MAIN));
+        this.add(new Symbol(Token.FINAL, null, 0, "final"));
+        this.add(new Symbol(Token.INT, Type.INT, 0, "int"));
+        this.add(new Symbol(Token.CHAR, Type.CHAR, 0, "char"));
+        this.add(new Symbol(Token.BOOLEAN, Type.BOOLEAN, 0, "boolean"));
+        this.add(new Symbol("for", Token.FOR,0));
+        this.add(new Symbol("if", Token.IF,0));
+        this.add(new Symbol("else", Token.ELSE,0));
+        this.add(new Symbol(Token.TRUE, Type.BOOLEAN, 0, "TRUE"));
+        this.add(new Symbol(Token.FALSE, Type.BOOLEAN, 0, "FALSE"));
+        this.add(new Symbol("and", Token.AND,0));
+        this.add(new Symbol("or", Token.OR,0));
+        this.add(new Symbol("not", Token.NOT,0));
+        this.add(new Symbol(":=", Token.ATTRIBUTION,0));
+        this.add(new Symbol("=", Token.EQUAL,0));
+        this.add(new Symbol("(", Token.OPENING_PARENTHESIS,0));
+        this.add(new Symbol(")", Token.CLOSING_PARENTHESIS,0));
+        this.add(new Symbol("<", Token.LT,0));
+        this.add(new Symbol(">", Token.GT,0));
+        this.add(new Symbol("<>", Token.NOT_EQUAL,0));
+        this.add(new Symbol(">=", Token.GTOE,0));
+        this.add(new Symbol("<=", Token.LTOE,0));
+        this.add(new Symbol(",", Token.COMMA,0));
+        this.add(new Symbol("+", Token.PLUS_SIGN,0));
+        this.add(new Symbol("-", Token.MINUS_SIGN,0));
+        this.add(new Symbol("*", Token.ASTERISK,0));
+        this.add(new Symbol("/", Token.SLASH,0));
+        this.add(new Symbol(";", Token.SEMICOLON,0));
+        this.add(new Symbol("{", Token.OPENING_BRACES,0));
+        this.add(new Symbol("}", Token.CLOSING_BRACES,0));
+        this.add(new Symbol("then", Token.THEN,0));
+        this.add(new Symbol("readln", Token.READLN,0));
+        this.add(new Symbol("write", Token.WRITE,0));
+        this.add(new Symbol("writeln", Token.WRITELN,0));
+        this.add(new Symbol("%", Token.PERCENTAGE,0));
+        this.add(new Symbol("[", Token.OPENING_BRACKETS,0));
+        this.add(new Symbol("]", Token.CLOSING_BRACKETS,0));
+        this.add(new Symbol("main", Token.MAIN,0));
     }
 
     public Symbol searchByLexeme(String lexeme) {
@@ -220,6 +264,7 @@ class SymbolTable extends HashSet<Symbol> {
  * Analisador Sintatico, realiza a análise sintática do programa L.
  */
 class Parser {
+    private static final int MAX_ARRAY_SIZE = 8*1024;
 
     private Lexer lexer;
     private Symbol symbol;
@@ -287,7 +332,7 @@ class Parser {
 
          while (hasToken(Arrays.asList(Token.FINAL, Token.INT, Token.CHAR, Token.BOOLEAN))) {
             D();
-        }
+         }
 
         matchToken(Token.MAIN);
 
@@ -302,32 +347,68 @@ class Parser {
     }
     //D -> T id({,id} | = V | ["[V]"]); | final id = V;
     private void D() {
+        Symbol auxSymbol = new Symbol();
+
         switch (symbol.getToken()) {
 
             case FINAL:
+                auxSymbol.setClasse(Classe.CLASSE_CONST);
                 matchToken(Token.FINAL);
+                auxSymbol.setToken(symbol.getToken());
                 matchToken(Token.IDENTIFIER);
 
                 matchToken(Token.EQUAL);
                 V();
+                auxSymbol.setType(symbol.getType());
                 matchToken(Token.SEMICOLON);
                 break;
 
             case BOOLEAN:
             case CHAR:
             case INT:
+                // Match Token BOOLEAN | CHAR | INT
+                auxSymbol.setClasse(Classe.CLASSE_VAR);
+
+                auxSymbol.setType(symbol.getType());
+
                 matchToken(symbol.getToken());
+
+                symbol.setType(auxSymbol.getType());
+
+                checkIfInUse(symbol, auxSymbol); // verifica se o identificador está em uso
+
+                auxSymbol = symbol; // salva o identificador
+
                 matchToken(Token.IDENTIFIER);
 
                 do {
                     if (compareToken(Token.COMMA)) {
                         matchToken(Token.COMMA);
+
+                        symbol.setType(auxSymbol.getType());
+
+                        checkIfInUse(symbol, auxSymbol);
+
+                        auxSymbol = symbol; // novo identificador apos a virgula
+
                         matchToken(Token.IDENTIFIER);
+
                     }
-//
+
                     if (compareToken(Token.OPENING_BRACKETS)) {
+
                         matchToken(Token.OPENING_BRACKETS);
                         if (symbol.getType() == Type.INT) {
+                            Symbol symbolFromTable = lexer.getSymbolTable().searchByLexeme(auxSymbol.getLexeme());
+
+                            int size = Integer.parseInt(symbol.getLexeme());
+
+                            if(size <= (MAX_ARRAY_SIZE)){
+                                symbolFromTable.setSize(size);
+                            }else{
+                                AssertType.sizeExceedsLimitsOfArray(lexer.getLines());
+                            }
+
                             V();
                         }else if(symbol.getType()!= Type.INT && compareToken(Token.CONST)){
                             EXP();
@@ -350,6 +431,19 @@ class Parser {
 
                 } while (compareToken(Token.COMMA));
                 matchToken(Token.SEMICOLON);
+        }
+    }
+
+    /**
+     * Checa se o identificador já tem classe, caso true, lança erro
+     * @param symbol
+     * @param auxSymbol
+     */
+    private void checkIfInUse(Symbol symbol, Symbol auxSymbol) {
+        if(Objects.isNull(symbol.getClasse())){
+            symbol.setClasse(auxSymbol.getClasse());
+        }else{
+            AssertType.identifierAlreadyInUse(lexer.getLines(),  symbol.getLexeme());
         }
     }
 
@@ -600,7 +694,9 @@ class Parser {
 class Lexer {
 
     private static final char EOF = (char) -1;
+
     private SymbolTable symbolTable = new SymbolTable();
+
     private String symbols = "=(),+-*;{}%[]";
     private BufferedReader bufferedReader;
     //Symbol creation
@@ -612,7 +708,6 @@ class Lexer {
     private Byte INITIAL_STATE = 0;
     private Byte CURRENT_STATE = 0;
     private Byte FINAL_STATE = 127;
-
     private int lines = 1;
 
     public Lexer(BufferedReader br) {
@@ -621,6 +716,10 @@ class Lexer {
 
     public int getLines() {
         return lines;
+    }
+
+    public SymbolTable getSymbolTable() {
+        return symbolTable;
     }
 
 
@@ -797,6 +896,7 @@ class Lexer {
             CURRENT_STATE = 3;
         } else {
             token = Token.IDENTIFIER;
+
             returnChar();
         }
     }
@@ -859,6 +959,7 @@ class Lexer {
         } else if (currentChar == '"') {
             CURRENT_STATE = FINAL_STATE;
             token = Token.CONST;
+            type = Type.CHAR;
 
         } else {
             AssertType.lexemeNotIdentified(lexeme, lines);
@@ -1059,6 +1160,16 @@ class AssertType {
 
     public static void unexpectedToken(String lexeme, int lines) {
         System.out.printf("%d\ntoken nao esperado [%s].", lines, lexeme);
+        System.exit(1);
+    }
+
+    public static void identifierAlreadyInUse(int lines, String lexeme) {
+        System.out.printf("%d\nidentificador ja declarado [%s].", lines, lexeme);
+        System.exit(1);
+    }
+
+    public static void sizeExceedsLimitsOfArray(int lines) {
+        System.out.printf("%d\ntamanho do vetor excede o maximo permitido.", lines);
         System.exit(1);
     }
 }
