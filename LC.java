@@ -2,10 +2,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -26,7 +23,6 @@ public class LC {
         Parser parser = new Parser(new Lexer(br));
         parser.S();
         System.out.printf("%d linhas compiladas.", parser.getLexer().getLines());
-
 
     }
 }
@@ -360,6 +356,8 @@ class Parser {
 
                 auxSymbol = symbol;
 
+                checkIfInUse(symbol, auxSymbol); // verifica se o identificador está em uso
+
                 matchToken(Token.IDENTIFIER);
 
                 matchToken(Token.EQUAL);
@@ -676,29 +674,68 @@ class Parser {
     }
 
     private void EXP() {
-        EXPS();
-        if (compareToken(Token.EQUAL) ||
-                compareToken(Token.LT) ||
-                compareToken(Token.NOT_EQUAL) ||
-                compareToken(Token.LTOE) ||
-                compareToken(Token.GT) ||
-                compareToken(Token.GTOE)) {
+         Symbol auxSymbol = symbol;
+         Symbol auxSecSymbol = new Symbol();
+         Token operation = null;
+
+         EXPS();
+
+         if (hasToken(Arrays.asList(Token.EQUAL,Token.LT,Token.NOT_EQUAL,Token.LTOE,Token.GT,Token.GTOE))){
+            operation = symbol.getToken();
 
             matchToken(symbol.getToken());
-            EXPS();
 
+            auxSecSymbol = symbol;
+
+            checkStringArrayOperator(auxSymbol, auxSecSymbol, operation);
+
+
+            EXPS();
+         }
+
+
+    }
+
+    private void checkStringArrayOperator(Symbol auxSymbol, Symbol auxSecSymbol, Token operation) {
+        if(auxSymbol.getType().equals(Type.CHAR)){
+           if(!operation.equals(Token.EQUAL)){
+               AssertType.incompatibleTypes(lexer.getLines());
+           }else{
+               if(!auxSecSymbol.getType().equals(auxSymbol.getType())){
+                   AssertType.incompatibleTypes(lexer.getLines());
+               }
+           }
         }
     }
 
     private void EXPS() {
+        Symbol firstTerm = new Symbol();
+        Symbol secondTerm = new Symbol();
+        boolean orOperation = false;
+
         if (compareToken(Token.MINUS_SIGN) || compareToken(Token.PLUS_SIGN)) {
             matchToken(symbol.getToken());
         }
+        firstTerm = symbol;
+
         TS();
         while (hasToken(Arrays.asList(Token.PLUS_SIGN, Token.MINUS_SIGN, Token.OR))) {
-
+            if(symbol.getToken().equals(Token.OR)){
+               orOperation = true;
+            }
             matchToken(symbol.getToken());
+            if(orOperation){
+                secondTerm = symbol;
+                checkIfTermsAreLogicType(firstTerm, secondTerm );
+            }
             TS();
+        }
+
+    }
+
+    private void checkIfTermsAreLogicType(Symbol firstTerm, Symbol secondTerm) {
+        if((Objects.isNull(firstTerm.getType()) || Objects.isNull(secondTerm.getType())) || !firstTerm.getType().equals(Type.BOOLEAN) && !secondTerm.getType().equals(Type.BOOLEAN)){
+            AssertType.incompatibleTypes(lexer.getLines());
         }
     }
 
@@ -718,18 +755,30 @@ class Parser {
     }
 
     private void TS() {
+        boolean andOperation = false;
+        Symbol auxSymbol = symbol;
         FS();
         while (hasToken(Arrays.asList(Token.ASTERISK, Token.SLASH, Token.PERCENTAGE, Token.AND))) {
+            if(symbol.getToken().equals(Token.AND)){
+                andOperation = true;
+            }
             matchToken(symbol.getToken());
+            if(andOperation){
+                if(!symbol.getType().equals(Type.BOOLEAN) || !auxSymbol.getType().equals(Type.BOOLEAN)){
+                    AssertType.incompatibleTypes(lexer.getLines());
+                }
+            }
             FS();
         }
-
 
     }
 
     private void FS() {
         if (compareToken(Token.NOT)) {
             matchToken(Token.NOT);
+            if(!symbol.getType().equals(Type.BOOLEAN)){
+                AssertType.incompatibleTypes(getLexer().getLines());
+            }
             FS();
         } else if (compareToken(Token.OPENING_PARENTHESIS)) {
             matchToken(Token.OPENING_PARENTHESIS);
