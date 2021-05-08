@@ -430,6 +430,7 @@ class Parser {
                         matchToken(Token.CLOSING_BRACKETS);
                     } else if (compareToken(Token.EQUAL)) {
                         matchToken(Token.EQUAL);
+                        checkIfCompatibleType(symbol,auxSymbol);
                         V();
                     }
                     else if (compareToken(Token.ATTRIBUTION)) {
@@ -632,20 +633,38 @@ class Parser {
         matchToken(Token.ATTRIBUTION);
 
         checkIfCompatibleType(symbol, auxSymbol);
+        checkIfArrayAndLimitIsNotExceeded(symbol, auxSymbol);
 
         EXP();
         if (inFor == 0 ) matchToken(Token.SEMICOLON);
 
     }
 
+    private void checkIfArrayAndLimitIsNotExceeded(Symbol symbol, Symbol auxSymbol) {
+        int lexemeSize =  symbol.getLexeme().length() - 1; // ((lexeme.length + $) -2) das aspas = ( -1 )
+        int symbolSize = symbol.getSize();
+
+        if(auxSymbol.getSize() > 0){
+            if(auxSymbol.getType().equals(Type.CHAR)){
+                if(symbolSize > 0 && symbolSize > auxSymbol.getSize()){
+                    AssertType.sizeExceedsLimitsOfArray(getLexer().getLines());
+                }else if(symbolSize == 0 && lexemeSize > auxSymbol.getLexeme().length()){
+                    AssertType.sizeExceedsLimitsOfArray(getLexer().getLines());
+                }
+            }
+
+        }
+    }
+
     private void checkIfCompatibleType(Symbol symbol, Symbol auxSymbol) {
-        if(!symbol.getType().equals(auxSymbol.getType())){
+        if((Objects.nonNull(symbol.getType()) && Objects.nonNull(auxSymbol.getType()))
+            && !symbol.getType().equals(auxSymbol.getType())){
             AssertType.incompatibleTypes(lexer.getLines());
         }
     }
 
     private void checkIfIsNotFinal(Symbol symbol) {
-        if(symbol.getClasse().equals(Classe.CLASSE_CONST)){
+        if(Objects.nonNull(symbol.getClasse()) && symbol.getClasse().equals(Classe.CLASSE_CONST)){
             AssertType.incompatibleIdentifierClass(lexer.getLines(), symbol.getLexeme());
         }
     }
