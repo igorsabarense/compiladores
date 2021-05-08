@@ -348,18 +348,29 @@ class Parser {
     //D -> T id({,id} | = V | ["[V]"]); | final id = V;
     private void D() {
         Symbol auxSymbol = new Symbol();
+        Symbol symbolFromTable = null;
 
         switch (symbol.getToken()) {
 
             case FINAL:
-                auxSymbol.setClasse(Classe.CLASSE_CONST);
+
                 matchToken(Token.FINAL);
-                auxSymbol.setToken(symbol.getToken());
+
+                symbol.setClasse(Classe.CLASSE_CONST);
+
+                auxSymbol = symbol;
+
                 matchToken(Token.IDENTIFIER);
 
                 matchToken(Token.EQUAL);
-                V();
+
                 auxSymbol.setType(symbol.getType());
+
+                V();
+
+                symbolFromTable = getLexer().getSymbolTable().searchByLexeme(auxSymbol.getLexeme());
+                symbolFromTable.setType(auxSymbol.getType());
+
                 matchToken(Token.SEMICOLON);
                 break;
 
@@ -399,7 +410,7 @@ class Parser {
 
                         matchToken(Token.OPENING_BRACKETS);
                         if (symbol.getType() == Type.INT) {
-                            Symbol symbolFromTable = lexer.getSymbolTable().searchByLexeme(auxSymbol.getLexeme());
+                            symbolFromTable = lexer.getSymbolTable().searchByLexeme(auxSymbol.getLexeme());
 
                             int size = Integer.parseInt(symbol.getLexeme());
 
@@ -602,18 +613,41 @@ class Parser {
     }
 
     private void ATTR() {
+        Symbol auxSymbol = new Symbol();
+
         if(inFor == 0) checkIfHasBeenDeclared(symbol);
 
+        checkIfIsNotFinal(symbol);
+
+        auxSymbol = symbol;
+
         matchToken(Token.IDENTIFIER);
+
         if (compareToken(Token.OPENING_BRACKETS)) {
             matchToken(Token.OPENING_BRACKETS);
             EXP();
             matchToken(Token.CLOSING_BRACKETS);
         }
+
         matchToken(Token.ATTRIBUTION);
+
+        checkIfCompatibleType(symbol, auxSymbol);
+
         EXP();
         if (inFor == 0 ) matchToken(Token.SEMICOLON);
 
+    }
+
+    private void checkIfCompatibleType(Symbol symbol, Symbol auxSymbol) {
+        if(!symbol.getType().equals(auxSymbol.getType())){
+            AssertType.incompatibleTypes(lexer.getLines());
+        }
+    }
+
+    private void checkIfIsNotFinal(Symbol symbol) {
+        if(symbol.getClasse().equals(Classe.CLASSE_CONST)){
+            AssertType.incompatibleIdentifierClass(lexer.getLines(), symbol.getLexeme());
+        }
     }
 
     private void checkIfHasBeenDeclared(Symbol symbol) {
@@ -1187,6 +1221,16 @@ class AssertType {
 
     public static void identifierNotDeclared(int lines, String lexeme) {
         System.out.printf("%d\nidentificador nao declarado [%s].", lines, lexeme);
+        System.exit(1);
+    }
+
+    public static void incompatibleIdentifierClass(int lines, String lexeme) {
+        System.out.printf("%d\nclasse de identificador incompatível [%s].", lines, lexeme);
+        System.exit(1);
+    }
+
+    public static void incompatibleTypes(int lines) {
+        System.out.printf("%d\ntipos incompativeis.", lines);
         System.exit(1);
     }
 }
