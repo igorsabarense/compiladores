@@ -1191,7 +1191,7 @@ class Lexer {
         if (currentChar == 'h') {
             CURRENT_STATE = FINAL_STATE;
             token = Token.CONST;
-            type = Type.CHAR;
+            type = Type.INT;
         } else {
             AssertType.lexemeNotIdentified(lexeme, lines);
         }
@@ -1201,7 +1201,7 @@ class Lexer {
         if (currentChar == 'h') {
             CURRENT_STATE = FINAL_STATE;
             token = Token.CONST;
-            type = Type.CHAR;
+            type = Type.INT;
         } else {
             AssertType.lexemeNotIdentified(lexeme, lines);
         }
