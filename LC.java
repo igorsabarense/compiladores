@@ -416,7 +416,11 @@ class Parser {
                                AssertType.incompatibleTypes(lexer.getLines());
                             }
 
-                            int size =  Integer.parseInt(symbol.getLexeme());
+                            String lexeme = symbol.getLexeme();
+
+                            int size = !lexeme.contains("h") ?
+                                    Integer.parseInt(lexeme) :
+                                    Integer.parseInt(lexeme.substring(1,3),16);
 
                             if(size <= (MAX_ARRAY_SIZE)){
                                 symbolFromTable.setSize(size);
