@@ -352,11 +352,13 @@ class Parser {
 
                 matchToken(Token.FINAL);
 
-                symbol.setClasse(Classe.CLASSE_CONST);
+                auxSymbol.setClasse(Classe.CLASSE_CONST);
 
-                auxSymbol = symbol;
+
 
                 checkIfInUse(symbol, auxSymbol); // verifica se o identificador está em uso
+
+                auxSymbol = symbol;
 
                 matchToken(Token.IDENTIFIER);
 
@@ -407,10 +409,14 @@ class Parser {
                     if (compareToken(Token.OPENING_BRACKETS)) {
 
                         matchToken(Token.OPENING_BRACKETS);
-                        if (symbol.getType() == Type.INT) {
+                        if (auxSymbol.getType() == Type.INT) {
                             symbolFromTable = lexer.getSymbolTable().searchByLexeme(auxSymbol.getLexeme());
 
-                            int size = Integer.parseInt(symbol.getLexeme());
+                            if(!symbol.getType().equals(Type.INT)){
+                               AssertType.incompatibleTypes(lexer.getLines());
+                            }
+
+                            int size =  Integer.parseInt(symbol.getLexeme());
 
                             if(size <= (MAX_ARRAY_SIZE)){
                                 symbolFromTable.setSize(size);
@@ -421,8 +427,6 @@ class Parser {
                             V();
                         }else if(symbol.getType()!= Type.INT && compareToken(Token.CONST)){
                             EXP();
-                        }else{
-                            AssertType.unexpectedToken(symbol.getLexeme(), lexer.getLines());
                         }
 
                         matchToken(Token.CLOSING_BRACKETS);
@@ -433,6 +437,7 @@ class Parser {
                     }
                     else if (compareToken(Token.ATTRIBUTION)) {
                         matchToken(Token.ATTRIBUTION);
+                        checkIfCompatibleType(auxSymbol,symbol);
                         if (compareToken(Token.PLUS_SIGN)) {
                             matchToken(Token.PLUS_SIGN);
                         }
@@ -622,16 +627,22 @@ class Parser {
 
         matchToken(Token.IDENTIFIER);
 
+        if((auxSymbol.getType().equals(Type.INT) && auxSymbol.getSize() > 0) && !compareToken(Token.OPENING_BRACKETS)){
+            AssertType.incompatibleTypes(getLexer().getLines());
+        }
+
         if (compareToken(Token.OPENING_BRACKETS)) {
             matchToken(Token.OPENING_BRACKETS);
             EXP();
             matchToken(Token.CLOSING_BRACKETS);
+
         }
 
         matchToken(Token.ATTRIBUTION);
 
         checkIfCompatibleType(symbol, auxSymbol);
-        checkIfArrayAndLimitIsNotExceeded(symbol, auxSymbol);
+
+       if(auxSymbol.getSize() > 0 ) checkIfArrayAndLimitIsNotExceeded(symbol, auxSymbol);
 
         EXP();
         if (inFor == 0 ) matchToken(Token.SEMICOLON);
@@ -639,19 +650,22 @@ class Parser {
     }
 
     private void checkIfArrayAndLimitIsNotExceeded(Symbol symbol, Symbol auxSymbol) {
-        int lexemeSize =  symbol.getLexeme().length() - 1; // ((lexeme.length + $) -2) das aspas = ( -1 )
+        int lexemeSize = symbol.getLexeme().replaceAll("\'|\"","").length();
         int symbolSize = symbol.getSize();
 
-        if(auxSymbol.getSize() > 0){
+        if(symbol.getLexeme().contains("\"")){
+           lexemeSize +=  1; // adiciona $ ao final da string
+        }
+
+
             if(auxSymbol.getType().equals(Type.CHAR)){
                 if(symbolSize > 0 && symbolSize > auxSymbol.getSize()){
-                    AssertType.sizeExceedsLimitsOfArray(getLexer().getLines());
-                }else if(symbolSize == 0 && lexemeSize > auxSymbol.getLexeme().length()){
-                    AssertType.sizeExceedsLimitsOfArray(getLexer().getLines());
+                    AssertType.incompatibleTypes(getLexer().getLines());
+                }else if(symbolSize == 0 && lexemeSize > auxSymbol.getSize()){
+                    AssertType.incompatibleTypes(getLexer().getLines());
                 }
             }
 
-        }
     }
 
     private void checkIfCompatibleType(Symbol symbol, Symbol auxSymbol) {
