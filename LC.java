@@ -418,9 +418,8 @@ class Parser {
 
                             String lexeme = symbol.getLexeme();
 
-                            int size = !lexeme.contains("h") ?
-                                    Integer.parseInt(lexeme) :
-                                    Integer.parseInt(lexeme.substring(1,3),16);
+                            //Se é hexa, faz um parse dos dois DD
+                            int size = Integer.parseInt(lexeme);
 
                             if(size <= (MAX_ARRAY_SIZE)){
                                 symbolFromTable.setSize(size);
@@ -631,12 +630,13 @@ class Parser {
 
         matchToken(Token.IDENTIFIER);
 
-        if((auxSymbol.getType().equals(Type.INT) && auxSymbol.getSize() > 0) && !compareToken(Token.OPENING_BRACKETS)){
-            AssertType.incompatibleTypes(getLexer().getLines());
-        }
+
 
         if (compareToken(Token.OPENING_BRACKETS)) {
             matchToken(Token.OPENING_BRACKETS);
+            if((auxSymbol.getType().equals(Type.INT) && auxSymbol.getSize() > 0) && (symbol.getType() != null && !symbol.getType().equals(Type.INT))){
+                AssertType.incompatibleTypes(getLexer().getLines());
+            }
             EXP();
             matchToken(Token.CLOSING_BRACKETS);
 
@@ -752,8 +752,10 @@ class Parser {
     }
 
     private void checkIfTermsAreLogicType(Symbol firstTerm, Symbol secondTerm) {
-        if((Objects.isNull(firstTerm.getType()) || Objects.isNull(secondTerm.getType())) || !firstTerm.getType().equals(Type.BOOLEAN) && !secondTerm.getType().equals(Type.BOOLEAN)){
-            AssertType.incompatibleTypes(lexer.getLines());
+        if(Objects.nonNull(firstTerm.getType()) && Objects.nonNull(secondTerm.getType())){
+            if(!firstTerm.getType().equals(Type.BOOLEAN) && !secondTerm.getType().equals(Type.BOOLEAN)){
+                AssertType.incompatibleTypes(lexer.getLines());
+            }
         }
     }
 
@@ -773,19 +775,9 @@ class Parser {
     }
 
     private void TS() {
-        boolean andOperation = false;
-        Symbol auxSymbol = symbol;
         FS();
         while (hasToken(Arrays.asList(Token.ASTERISK, Token.SLASH, Token.PERCENTAGE, Token.AND))) {
-            if(symbol.getToken().equals(Token.AND)){
-                andOperation = true;
-            }
             matchToken(symbol.getToken());
-            if(andOperation){
-                if(!symbol.getType().equals(Type.BOOLEAN) || !auxSymbol.getType().equals(Type.BOOLEAN)){
-                    AssertType.incompatibleTypes(lexer.getLines());
-                }
-            }
             FS();
         }
 
@@ -1136,11 +1128,12 @@ class Lexer {
         } else if (currentChar == 'h' || !AssertType.isNumeric(currentChar)) {
             if(currentChar == 'h') {
                 CURRENT_STATE = FINAL_STATE;
+                token = Token.CONST;
+                type = Type.CHAR;
             }else{
                 returnChar();
             }
-            token = Token.CONST;
-            type = Type.INT;
+
 
         }
         else {
@@ -1185,7 +1178,7 @@ class Lexer {
         if (currentChar == 'h') {
             CURRENT_STATE = FINAL_STATE;
             token = Token.CONST;
-            type = Type.INT;
+            type = Type.CHAR;
         } else {
             AssertType.lexemeNotIdentified(lexeme, lines);
         }
@@ -1195,7 +1188,7 @@ class Lexer {
         if (currentChar == 'h') {
             CURRENT_STATE = FINAL_STATE;
             token = Token.CONST;
-            type = Type.INT;
+            type = Type.CHAR;
         } else {
             AssertType.lexemeNotIdentified(lexeme, lines);
         }
@@ -1205,7 +1198,7 @@ class Lexer {
         if (currentChar == 'h') {
             CURRENT_STATE = FINAL_STATE;
             token = Token.CONST;
-            type = Type.INT;
+            type = Type.CHAR;
         } else {
             AssertType.lexemeNotIdentified(lexeme, lines);
         }
