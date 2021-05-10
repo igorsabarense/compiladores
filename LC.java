@@ -418,7 +418,6 @@ class Parser {
 
                             String lexeme = symbol.getLexeme();
 
-                            //Se é hexa, faz um parse dos dois DD
                             int size = Integer.parseInt(lexeme);
 
                             if(size <= (MAX_ARRAY_SIZE)){
@@ -428,7 +427,19 @@ class Parser {
                             }
 
                             V();
-                        }else if(symbol.getType()!= Type.INT && compareToken(Token.CONST)){
+                        }else if(compareToken(Token.CONST)){
+                            symbolFromTable = lexer.getSymbolTable().searchByLexeme(auxSymbol.getLexeme());
+
+                            String lexeme = symbol.getLexeme();
+
+
+                            int size = Integer.parseInt(lexeme);
+
+                            if(size <= (MAX_ARRAY_SIZE)){
+                                symbolFromTable.setSize(size);
+                            }else{
+                                AssertType.sizeExceedsLimitsOfArray(lexer.getLines());
+                            }
                             EXP();
                         }
 
@@ -624,12 +635,11 @@ class Parser {
 
         if(inFor == 0) checkIfHasBeenDeclared(symbol);
 
-        checkIfIsNotFinal(symbol);
+        checkIfIsNotFinal(symbol); // não é possível atribuir valor a symbols de classe final
 
         auxSymbol = symbol;
 
         matchToken(Token.IDENTIFIER);
-
 
 
         if (compareToken(Token.OPENING_BRACKETS)) {
@@ -677,6 +687,7 @@ class Parser {
             && !symbol.getType().equals(auxSymbol.getType())){
             AssertType.incompatibleTypes(lexer.getLines());
         }
+
     }
 
     private void checkIfIsNotFinal(Symbol symbol) {
@@ -714,9 +725,10 @@ class Parser {
 
     }
 
+    //Retornar aqui, string = charVector
     private void checkStringArrayOperator(Symbol auxSymbol, Symbol auxSecSymbol, Token operation) {
         if(auxSymbol.getType().equals(Type.CHAR)){
-           if(!operation.equals(Token.EQUAL)){
+           if(!operation.equals(Token.EQUAL) && !auxSecSymbol.getType().equals(auxSymbol.getType())){
                AssertType.incompatibleTypes(lexer.getLines());
            }else{
                if(!auxSecSymbol.getType().equals(auxSymbol.getType())){
