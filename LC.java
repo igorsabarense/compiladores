@@ -349,13 +349,8 @@ class Parser {
         switch (symbol.getToken()) {
 
             case FINAL:
-
                 matchToken(Token.FINAL);
-
                 auxSymbol.setClasse(Classe.CLASSE_CONST);
-
-
-
                 checkIfInUse(symbol, auxSymbol); // verifica se o identificador está em uso
 
                 auxSymbol = symbol;
@@ -379,37 +374,25 @@ class Parser {
             case INT:
                 // Match Token BOOLEAN | CHAR | INT
                 auxSymbol.setClasse(Classe.CLASSE_VAR);
-
                 auxSymbol.setType(symbol.getType());
-
                 matchToken(symbol.getToken());
-
                 symbol.setType(auxSymbol.getType());
-
                 checkIfInUse(symbol, auxSymbol); // verifica se o identificador está em uso
-
                 auxSymbol = symbol; // salva o identificador
-
                 matchToken(Token.IDENTIFIER);
-
                 do {
                     if (compareToken(Token.COMMA)) {
                         matchToken(Token.COMMA);
-
                         symbol.setType(auxSymbol.getType());
-
                         checkIfInUse(symbol, auxSymbol);
-
                         auxSymbol = symbol; // novo identificador apos a virgula
-
                         matchToken(Token.IDENTIFIER);
-
                     }
 
                     if (compareToken(Token.OPENING_BRACKETS)) {
 
                         matchToken(Token.OPENING_BRACKETS);
-                        if (auxSymbol.getType() == Type.INT) {
+                        if (symbol.getType() == Type.INT) {
                             symbolFromTable = lexer.getSymbolTable().searchByLexeme(auxSymbol.getLexeme());
 
                             if(!symbol.getType().equals(Type.INT)){
@@ -417,30 +400,13 @@ class Parser {
                             }
 
                             String lexeme = symbol.getLexeme();
-
                             int size = Integer.parseInt(lexeme);
-
                             if(size <= (MAX_ARRAY_SIZE)){
                                 symbolFromTable.setSize(size);
                             }else{
                                 AssertType.sizeExceedsLimitsOfArray(lexer.getLines());
                             }
-
                             V();
-                        }else if(compareToken(Token.CONST)){
-                            symbolFromTable = lexer.getSymbolTable().searchByLexeme(auxSymbol.getLexeme());
-
-                            String lexeme = symbol.getLexeme();
-
-
-                            int size = Integer.parseInt(lexeme);
-
-                            if(size <= (MAX_ARRAY_SIZE)){
-                                symbolFromTable.setSize(size);
-                            }else{
-                                AssertType.sizeExceedsLimitsOfArray(lexer.getLines());
-                            }
-                            EXP();
                         }
 
                         matchToken(Token.CLOSING_BRACKETS);
@@ -537,12 +503,15 @@ class Parser {
         matchToken(Token.READLN);
         matchToken(Token.OPENING_PARENTHESIS);
         checkIfHasBeenDeclared(symbol);
-        matchToken(Token.IDENTIFIER);
-        if (compareToken(Token.OPENING_BRACKETS)) {
-            matchToken(Token.OPENING_BRACKETS);
-            EXP();
-            matchToken(Token.CLOSING_BRACKETS);
+        //matchToken(Token.IDENTIFIER);
+        if(compareToken(Token.IDENTIFIER)){
+            FS();
         }
+        /*if (compareToken(Token.OPENING_BRACKETS)) {
+            matchToken(Token.OPENING_BRACKETS);
+
+            matchToken(Token.CLOSING_BRACKETS);
+        }*/
         matchToken(Token.CLOSING_PARENTHESIS);
         if (inFor == 0) matchToken(Token.SEMICOLON);
 //        else if(hasToken(Arrays.asList(Token.CONST, Token.MINUS_SIGN))){
@@ -798,7 +767,7 @@ class Parser {
     private void FS() {
         if (compareToken(Token.NOT)) {
             matchToken(Token.NOT);
-            if(!symbol.getType().equals(Type.BOOLEAN)){
+            if(Objects.nonNull(symbol.getType())  &&  !symbol.getType().equals(Type.BOOLEAN)){
                 AssertType.incompatibleTypes(getLexer().getLines());
             }
             FS();
@@ -809,7 +778,20 @@ class Parser {
         } else if (hasToken(Arrays.asList(Token.CONST, Token.TRUE, Token.FALSE))) {
             V();
         } else if (compareToken(Token.IDENTIFIER)) {
-            matchToken(Token.IDENTIFIER);
+            if (symbol.getSize() > 0 && !symbol.getType().equals(Type.CHAR)){
+                matchToken(Token.IDENTIFIER);
+                matchToken(Token.OPENING_BRACKETS);
+                if(symbol.getType() == Type.INT){
+                    V();
+                }
+                else{
+                    AssertType.incompatibleTypes(lexer.getLines());
+                }
+                matchToken(Token.CLOSING_BRACKETS);
+            }
+            else{
+                matchToken(Token.IDENTIFIER);
+            }
 
             if (compareToken(Token.OPENING_BRACKETS)) {
                 matchToken(Token.OPENING_BRACKETS);
@@ -1325,5 +1307,3 @@ class AssertType {
         System.exit(1);
     }
 }
-
-
