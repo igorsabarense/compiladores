@@ -395,18 +395,24 @@ class Parser {
                         if (symbol.getType() == Type.INT) {
                             symbolFromTable = lexer.getSymbolTable().searchByLexeme(auxSymbol.getLexeme());
 
-                            if(!symbol.getType().equals(Type.INT)){
-                               AssertType.incompatibleTypes(lexer.getLines());
-                            }
 
                             String lexeme = symbol.getLexeme();
                             int size = Integer.parseInt(lexeme);
-                            if(size <= (MAX_ARRAY_SIZE)){
+
+                            //caso vetor seja declarado com 0
+
+
+                            // excecao caso tamanho seja maior que 8192 ( 8kb )
+                            if(size <= (MAX_ARRAY_SIZE) && size > 0){
                                 symbolFromTable.setSize(size);
+                            }else if(size == 0){
+                                AssertType.incompatibleTypes(lexer.getLines());
                             }else{
                                 AssertType.sizeExceedsLimitsOfArray(lexer.getLines());
                             }
                             V();
+                        }else{
+                            AssertType.incompatibleTypes(lexer.getLines());
                         }
 
                         matchToken(Token.CLOSING_BRACKETS);
@@ -601,6 +607,8 @@ class Parser {
 
     private void ATTR() {
         Symbol auxSymbol = new Symbol();
+        Symbol auxSecSymbol = new Symbol();
+        boolean arrayElement = false;
 
         if(inFor == 0) checkIfHasBeenDeclared(symbol);
 
@@ -616,20 +624,44 @@ class Parser {
             if((auxSymbol.getType().equals(Type.INT) && auxSymbol.getSize() > 0) && (symbol.getType() != null && !symbol.getType().equals(Type.INT))){
                 AssertType.incompatibleTypes(getLexer().getLines());
             }
+            if(auxSymbol.getSize() > 0){
+                arrayElement = true;
+            }
             EXP();
             matchToken(Token.CLOSING_BRACKETS);
 
+        }else if(auxSymbol.getSize() > 0 && !auxSymbol.getType().equals(Type.CHAR)){
+            AssertType.incompatibleTypes(getLexer().getLines());
         }
 
         matchToken(Token.ATTRIBUTION);
 
-        checkIfCompatibleType(symbol, auxSymbol);
+        specialCaseArrayCharIncompatibleType(auxSymbol, arrayElement);
 
-       if(auxSymbol.getSize() > 0 ) checkIfArrayAndLimitIsNotExceeded(symbol, auxSymbol);
+        checkIfCompatibleType( auxSymbol ,symbol );
+
+        if(auxSymbol.getSize() > 0 ) checkIfArrayAndLimitIsNotExceeded(symbol, auxSymbol);
 
         EXP();
+
         if (inFor == 0 ) matchToken(Token.SEMICOLON);
 
+    }
+
+    private void specialCaseArrayCharIncompatibleType(Symbol auxSymbol, boolean arrayElement) {
+
+        if(auxSymbol.getSize() == 0 && symbol.getSize() > 0 && !arrayElement && !symbol.getLexeme().contains("\"")){
+            AssertType.incompatibleTypes(lexer.getLines());
+        }
+
+        if(!symbol.getLexeme().contains("\"")){
+            if((Objects.nonNull(symbol.getType()) && Objects.nonNull(auxSymbol.getType())
+                    && (auxSymbol.getSize() > 0 && auxSymbol.getType().equals(Type.CHAR)))){
+                if(symbol.getSize() == 0 && !arrayElement){
+                    AssertType.incompatibleTypes(lexer.getLines());
+                }
+            }
+        }
     }
 
     private void checkIfArrayAndLimitIsNotExceeded(Symbol symbol, Symbol auxSymbol) {
@@ -651,7 +683,30 @@ class Parser {
 
     }
 
+
+    /**
+     *
+     * @param symbol -> no caso de char/string, symbol deve ser o identificador
+     * @param auxSymbol ->  no caso de char/string , auxSymbol deve ser a constante string
+     */
     private void checkIfCompatibleType(Symbol symbol, Symbol auxSymbol) {
+
+
+
+        if((Objects.nonNull(symbol.getType()) && Objects.nonNull(auxSymbol.getType())
+           && (symbol.getSize() == 0 && symbol.getType().equals(Type.CHAR)))){
+           if(auxSymbol.getLexeme().contains("\"")){
+               AssertType.incompatibleTypes(lexer.getLines());
+           }
+        }
+
+        if((Objects.nonNull(symbol.getType()) && Objects.nonNull(auxSymbol.getType())
+                && (symbol.getSize() == 0 && symbol.getType().equals(Type.CHAR)))){
+            if(auxSymbol.getLexeme().contains("\"")){
+                AssertType.incompatibleTypes(lexer.getLines());
+            }
+        }
+
         if((Objects.nonNull(symbol.getType()) && Objects.nonNull(auxSymbol.getType()))
             && !symbol.getType().equals(auxSymbol.getType())){
             AssertType.incompatibleTypes(lexer.getLines());
@@ -685,7 +740,9 @@ class Parser {
 
             auxSecSymbol = symbol;
 
-            checkStringArrayOperator(auxSymbol, auxSecSymbol, operation);
+             if(auxSymbol.getType().equals(Type.CHAR)){
+                 checkStringArrayOperator(auxSymbol, auxSecSymbol, operation);
+             }
 
 
             EXPS();
@@ -696,15 +753,15 @@ class Parser {
 
     //Retornar aqui, string = charVector
     private void checkStringArrayOperator(Symbol auxSymbol, Symbol auxSecSymbol, Token operation) {
-        if(auxSymbol.getType().equals(Type.CHAR)){
-           if(!operation.equals(Token.EQUAL) && !auxSecSymbol.getType().equals(auxSymbol.getType())){
+
+           if(!operation.equals(Token.EQUAL)){
                AssertType.incompatibleTypes(lexer.getLines());
            }else{
                if(!auxSecSymbol.getType().equals(auxSymbol.getType())){
                    AssertType.incompatibleTypes(lexer.getLines());
                }
            }
-        }
+
     }
 
     private void EXPS() {
@@ -771,6 +828,7 @@ class Parser {
                 AssertType.incompatibleTypes(getLexer().getLines());
             }
             FS();
+
         } else if (compareToken(Token.OPENING_PARENTHESIS)) {
             matchToken(Token.OPENING_PARENTHESIS);
             EXP();
