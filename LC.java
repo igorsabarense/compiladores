@@ -1,6 +1,4 @@
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -102,15 +100,15 @@ class Symbol {
 
     private Token token;
     private Type type;
-
     private Classe classe;
-
-    private int size;
-
     private String lexeme;
+    private int size;
+    private int memoryAdress;
+
 
     public Symbol() {
         this.size = 0;
+        this.memoryAdress = 0;
     }
 
     public Symbol(String lexeme, Token token) {
@@ -124,6 +122,7 @@ class Symbol {
         this.lexeme = lexeme;
         this.type = type;
         this.size = 0;
+        this.memoryAdress = 0;
     }
 
     public Symbol(String lexeme, Token token, int size) {
@@ -131,6 +130,7 @@ class Symbol {
         this.lexeme = lexeme;
         this.size = size;
         this.type = null;
+        this.memoryAdress = 0;
 
     }
 
@@ -139,6 +139,23 @@ class Symbol {
         this.lexeme = lexeme;
         this.type = type;
         this.size = size;
+        this.memoryAdress = 0;
+    }
+
+    public Symbol(Token token, Type type, int size , String lexeme, int memoryAdress) {
+        this.token = token;
+        this.lexeme = lexeme;
+        this.type = type;
+        this.size = size;
+        this.memoryAdress = memoryAdress;
+    }
+
+    public int getMemoryAdress() {
+        return memoryAdress;
+    }
+
+    public void setMemoryAdress(int memoryAdress) {
+        this.memoryAdress = memoryAdress;
     }
 
 
@@ -264,13 +281,18 @@ class Parser {
 
     private Lexer lexer;
     private Symbol symbol;
+    private BufferedWriter buffer;
+    private List<String> asmList;
+    private int memoryAdressParser;
+    private StringBuilder asmLine = new StringBuilder();
 
-
-    public Parser(Lexer lexer) {
+    public Parser(Lexer lexer) throws IOException {
 
         this.lexer = lexer;
+        this.memoryAdressParser = 0x4000;
         this.symbol = this.lexer.lexicalAnalysis();
-
+        this.buffer =  new BufferedWriter(new FileWriter("saida.L"));
+        asmList = new ArrayList<>();
     }
 
     public Lexer getLexer() {
@@ -326,9 +348,23 @@ class Parser {
     // S -> {D} main { "{" C "}" }
     public void S() {
 
+        asmList.add("sseg SEGMENT STACK ;início seg. pilha");
+        asmList.add("  byte 4000h DUP(?) ;dimensiona pilha");
+        asmList.add("sseg ENDS ;fim seg. pilha");
+        asmList.add("dseg SEGMENT PUBLIC ;início seg. dados");
+        asmList.add("  byte 4000h DUP(?) ;temporários");
+
+
          while (hasToken(Arrays.asList(Token.FINAL, Token.INT, Token.CHAR, Token.BOOLEAN))) {
             D();
          }
+
+        asmList.add("dseg ENDS ;fim seg. dados");
+        asmList.add("cseg SEGMENT PUBLIC ;início seg. código");
+        asmList.add("  ASSUME CS:cseg, DS:dseg");
+        asmList.add("strt: ;início do programa");
+        asmList.add("  mov ax, dseg");
+        asmList.add("  mov ds, ax");
 
         matchToken(Token.MAIN);
 
@@ -336,6 +372,12 @@ class Parser {
         while (hasToken(Arrays.asList(Token.SEMICOLON, Token.FOR, Token.IDENTIFIER, Token.IF, Token.READLN, Token.WRITE, Token.WRITELN))) {
             C();
         }
+
+        asmList.add("  mov ah, 4Ch");
+        asmList.add("  int 21h");
+        asmList.add("cseg ENDS ;fim seg. código");
+        asmList.add("END strt; fim programa");
+
         matchToken(Token.CLOSING_BRACES);
 
         matchToken(Token.END_OF_FILE);
@@ -345,6 +387,7 @@ class Parser {
     private void D() {
         Symbol auxSymbol = new Symbol();
         Symbol symbolFromTable = null;
+
 
         switch (symbol.getToken()) {
 
@@ -359,14 +402,17 @@ class Parser {
 
                 matchToken(Token.EQUAL);
 
-                auxSymbol.setType(symbol.getType());
+                auxSymbol.setType(symbol.getType()); // tipo do valor
+
 
                 V();
 
                 symbolFromTable = getLexer().getSymbolTable().searchByLexeme(auxSymbol.getLexeme());
                 symbolFromTable.setType(auxSymbol.getType());
 
+
                 matchToken(Token.SEMICOLON);
+                asmLine.append("\n");
                 break;
 
             case BOOLEAN:
@@ -457,10 +503,29 @@ class Parser {
     private void V() {
         if (compareToken(Token.MINUS_SIGN)) {
             matchToken(Token.MINUS_SIGN);
+
+            // ASSEMBLY LINE
+            asmLine.append("    sword ");
+            //ASSEMBLY LINE
+            asmLine.append(" - ").append(symbol.getLexeme());
+
             matchToken(Token.CONST);
+
         } else if (compareToken(Token.CONST)) {
+            // ASSEMBLY LINE
+            if(symbol.getType().equals(Type.CHAR)){
+                asmLine.append("    byte ");
+            }else{
+                asmLine.append("    sword ");
+            }
+            //ASSEMBLY LINE
+            asmLine.append(symbol.getLexeme());
             matchToken(Token.CONST);
         } else if (compareToken(Token.TRUE) || compareToken(Token.FALSE)) {
+            // ASSEMBLY LINE
+            asmLine.append("    sword ");
+            //ASSEMBLY LINE
+            asmLine.append(symbol.getLexeme().equals("TRUE") ? 1 : 0);
             matchToken(symbol.getToken());
         } else {
             AssertType.unexpectedToken(symbol.getLexeme(), lexer.getLines());
