@@ -1421,7 +1421,7 @@ class AssertType {
     }
 
     public static void incompatibleIdentifierClass(int lines, String lexeme) {
-        System.out.printf("%d\nclasse de identificador incompatível [%s].", lines, lexeme);
+        System.out.printf("%d\nclasse de identificador incompativel [%s].", lines, lexeme);
         System.exit(1);
     }
 
