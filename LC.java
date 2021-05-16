@@ -474,11 +474,11 @@ class Parser {
                             sign = true;
                         }
 
-                        if(sign && !symbol.getType().equals(Type.INT) ){
+                       type = V();
+
+                        if(sign && !type.equals(Type.INT) ){
                             AssertType.incompatibleTypes(lexer.getLines());
                         }
-
-                        V();
                     }
 
                 } while (compareToken(Token.COMMA));
@@ -773,7 +773,7 @@ class Parser {
 
         if((Objects.nonNull(symbol.getType()) && Objects.nonNull(auxSymbol.getType())
            && (symbol.getSize() == 0 && symbol.getType().equals(Type.CHAR)))){
-           if(auxSymbol.getLexeme().contains("\"")){
+           if(symbol.getLexeme().contains("\"")){
                AssertType.incompatibleTypes(lexer.getLines());
            }
         }
