@@ -618,9 +618,11 @@ class Parser {
         matchToken(Token.THEN);
         if (compareToken(Token.OPENING_BRACES)) {
             matchToken(Token.OPENING_BRACES);
-            do{
+
+            while (hasToken(Arrays.asList(Token.SEMICOLON, Token.FOR, Token.IDENTIFIER, Token.IF, Token.READLN, Token.WRITE, Token.WRITELN))) {
                 C();
-            }while (hasToken(Arrays.asList(Token.SEMICOLON, Token.FOR, Token.IDENTIFIER, Token.IF, Token.READLN, Token.WRITE, Token.WRITELN)));
+            }
+
             matchToken(Token.CLOSING_BRACES);
         } else {
             C();
@@ -718,7 +720,7 @@ class Parser {
 
         checkIfCompatibleType( auxSymbol ,symbol );
 
-        if(auxSymbol.getSize() > 0 ) checkIfArrayAndLimitIsNotExceeded(auxSymbol, symbol);
+        if(auxSymbol.getSize() > 0 ) checkIfArrayAndLimitIsNotExceeded(symbol, auxSymbol);
 
         EXP();
 
@@ -835,12 +837,13 @@ class Parser {
 
     //Retornar aqui, string = charVector
     private void checkStringArrayOperator(Symbol auxSymbol, Symbol auxSecSymbol, Token operation) {
-
-           if(!operation.equals(Token.EQUAL)){
-               AssertType.incompatibleTypes(lexer.getLines());
-           }else{
-               if(!auxSecSymbol.getType().equals(auxSymbol.getType())){
+           if(auxSecSymbol.getSize() > 0 && auxSymbol.getSize() == 0 || auxSymbol.getSize() > 0 && auxSecSymbol.getSize() == 0){
+               if(!operation.equals(Token.EQUAL)){
                    AssertType.incompatibleTypes(lexer.getLines());
+               }else{
+                   if(!auxSecSymbol.getType().equals(auxSymbol.getType())){
+                       AssertType.incompatibleTypes(lexer.getLines());
+                   }
                }
            }
 
@@ -939,7 +942,8 @@ class Parser {
         } else if (compareToken(Token.IDENTIFIER)) {
             if (symbol.getSize() > 0 && !symbol.getType().equals(Type.CHAR)){
                 matchToken(Token.IDENTIFIER);
-                matchToken(Token.OPENING_BRACKETS);
+                if(compareToken(Token.OPENING_BRACKETS)) matchToken(Token.OPENING_BRACKETS);
+                else  AssertType.incompatibleTypes(lexer.getLines());
                 if(symbol.getType() == Type.INT){
                    type = V();
                 }
