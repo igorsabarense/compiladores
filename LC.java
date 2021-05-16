@@ -387,7 +387,7 @@ class Parser {
     private void D() {
         Symbol auxSymbol = new Symbol();
         Symbol symbolFromTable = null;
-
+        Type type = null;
 
         switch (symbol.getToken()) {
 
@@ -402,13 +402,11 @@ class Parser {
 
                 matchToken(Token.EQUAL);
 
-                auxSymbol.setType(symbol.getType()); // tipo do valor
 
-
-                V();
+                type = V();
 
                 symbolFromTable = getLexer().getSymbolTable().searchByLexeme(auxSymbol.getLexeme());
-                symbolFromTable.setType(auxSymbol.getType());
+                symbolFromTable.setType(type);
 
 
                 matchToken(Token.SEMICOLON);
@@ -443,13 +441,11 @@ class Parser {
 
 
                             String lexeme = symbol.getLexeme();
-                            int size = Integer.parseInt(lexeme);
-
-                            //caso vetor seja declarado com 0
+                            int size = Integer.parseInt(lexeme) * (symbol.getType().equals(Type.CHAR) ? 1 : 2);
 
 
                             // excecao caso tamanho seja maior que 8192 ( 8kb )
-                            if(size <= (MAX_ARRAY_SIZE) && size > 0){
+                            if( size > 0 && size <= (MAX_ARRAY_SIZE)){
                                 symbolFromTable.setSize(size);
                             }else if(size == 0){
                                 AssertType.incompatibleTypes(lexer.getLines());
@@ -468,11 +464,20 @@ class Parser {
                         V();
                     }
                     else if (compareToken(Token.ATTRIBUTION)) {
+                        boolean sign = false;
                         matchToken(Token.ATTRIBUTION);
                         checkIfCompatibleType(auxSymbol,symbol);
                         if (compareToken(Token.PLUS_SIGN)) {
+                            sign = true;
                             matchToken(Token.PLUS_SIGN);
+                        }else if(compareToken(Token.MINUS_SIGN)){
+                            sign = true;
                         }
+
+                        if(sign && !symbol.getType().equals(Type.INT) ){
+                            AssertType.incompatibleTypes(lexer.getLines());
+                        }
+
                         V();
                     }
 
@@ -500,7 +505,8 @@ class Parser {
         matchToken(token);
     }
 
-    private void V() {
+    private Type V() {
+        Type type = null;
         if (compareToken(Token.MINUS_SIGN)) {
             matchToken(Token.MINUS_SIGN);
 
@@ -509,6 +515,10 @@ class Parser {
             //ASSEMBLY LINE
             asmLine.append(" - ").append(symbol.getLexeme());
 
+            if(!symbol.getType().equals(Type.INT)){
+                AssertType.incompatibleTypes(lexer.getLines());
+            }
+            type = symbol.getType();
             matchToken(Token.CONST);
 
         } else if (compareToken(Token.CONST)) {
@@ -520,16 +530,19 @@ class Parser {
             }
             //ASSEMBLY LINE
             asmLine.append(symbol.getLexeme());
+            type = symbol.getType();
             matchToken(Token.CONST);
         } else if (compareToken(Token.TRUE) || compareToken(Token.FALSE)) {
             // ASSEMBLY LINE
             asmLine.append("    sword ");
             //ASSEMBLY LINE
             asmLine.append(symbol.getLexeme().equals("TRUE") ? 1 : 0);
+            type = symbol.getType();
             matchToken(symbol.getToken());
         } else {
             AssertType.unexpectedToken(symbol.getLexeme(), lexer.getLines());
         }
+        return type;
     }
     private int inFor = 0;
     private void C() {
@@ -833,11 +846,18 @@ class Parser {
         Symbol firstTerm = new Symbol();
         Symbol secondTerm = new Symbol();
         boolean orOperation = false;
-
+        boolean sign = false;
         if (compareToken(Token.MINUS_SIGN) || compareToken(Token.PLUS_SIGN)) {
+            sign = true;
             matchToken(symbol.getToken());
         }
         firstTerm = symbol;
+
+        if(sign){
+            if(!symbol.getType().equals(Type.INT)){
+                AssertType.incompatibleTypes(lexer.getLines());
+            }
+        }
 
         TS();
         while (hasToken(Arrays.asList(Token.PLUS_SIGN, Token.MINUS_SIGN, Token.OR))) {
@@ -878,9 +898,18 @@ class Parser {
     }
 
     private void TS() {
+        boolean and = false;
         FS();
         while (hasToken(Arrays.asList(Token.ASTERISK, Token.SLASH, Token.PERCENTAGE, Token.AND))) {
+            if(symbol.getToken().equals(Token.AND)){
+                and = true;
+            }
             matchToken(symbol.getToken());
+
+            if(and && !symbol.getType().equals(Type.BOOLEAN)){
+                AssertType.incompatibleTypes(lexer.getLines());
+            }
+
             FS();
         }
 
