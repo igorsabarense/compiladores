@@ -441,7 +441,7 @@ class Parser {
 
 
                             String lexeme = symbol.getLexeme();
-                            int size = Integer.parseInt(lexeme) * (symbol.getType().equals(Type.CHAR) ? 1 : 2);
+                            int size = Integer.parseInt(lexeme) * (!symbolFromTable.getType().equals(Type.INT) ? 1 : 2);
 
 
                             // excecao caso tamanho seja maior que 8192 ( 8kb )
@@ -718,7 +718,7 @@ class Parser {
 
         checkIfCompatibleType( auxSymbol ,symbol );
 
-        if(auxSymbol.getSize() > 0 ) checkIfArrayAndLimitIsNotExceeded(symbol, auxSymbol);
+        if(auxSymbol.getSize() > 0 ) checkIfArrayAndLimitIsNotExceeded(auxSymbol, symbol);
 
         EXP();
 
@@ -753,9 +753,9 @@ class Parser {
 
             if(auxSymbol.getType().equals(Type.CHAR)){
                 if(symbolSize > 0 && symbolSize > auxSymbol.getSize()){
-                    AssertType.incompatibleTypes(getLexer().getLines());
+                    AssertType.sizeExceedsLimitsOfArray(getLexer().getLines());
                 }else if(symbolSize == 0 && lexemeSize > auxSymbol.getSize()){
-                    AssertType.incompatibleTypes(getLexer().getLines());
+                    AssertType.sizeExceedsLimitsOfArray(getLexer().getLines());
                 }
             }
 
