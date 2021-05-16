@@ -804,12 +804,13 @@ class Parser {
         }
     }
 
-    private void EXP() {
+    private Type EXP() {
          Symbol auxSymbol = symbol;
          Symbol auxSecSymbol = new Symbol();
          Token operation = null;
+         Type type = null;
 
-         EXPS();
+         type = EXPS();
 
          if (hasToken(Arrays.asList(Token.EQUAL,Token.LT,Token.NOT_EQUAL,Token.LTOE,Token.GT,Token.GTOE))){
             operation = symbol.getToken();
@@ -823,10 +824,13 @@ class Parser {
              }
 
 
-            EXPS();
+             EXPS();
+
+             //Caso tenha comparador , retorna um tipo lógico
+             type = Type.BOOLEAN;
          }
 
-
+        return type;
     }
 
     //Retornar aqui, string = charVector
@@ -842,9 +846,10 @@ class Parser {
 
     }
 
-    private void EXPS() {
+    private Type EXPS() {
         Symbol firstTerm = new Symbol();
         Symbol secondTerm = new Symbol();
+        Type type = null;
         boolean orOperation = false;
         boolean sign = false;
         if (compareToken(Token.MINUS_SIGN) || compareToken(Token.PLUS_SIGN)) {
@@ -859,7 +864,7 @@ class Parser {
             }
         }
 
-        TS();
+        type = TS();
         while (hasToken(Arrays.asList(Token.PLUS_SIGN, Token.MINUS_SIGN, Token.OR))) {
             if(symbol.getToken().equals(Token.OR)){
                orOperation = true;
@@ -869,9 +874,9 @@ class Parser {
                 secondTerm = symbol;
                 checkIfTermsAreLogicType(firstTerm, secondTerm );
             }
-            TS();
+            type = TS();
         }
-
+        return type;
     }
 
     private void checkIfTermsAreLogicType(Symbol firstTerm, Symbol secondTerm) {
@@ -897,44 +902,46 @@ class Parser {
 
     }
 
-    private void TS() {
+    private Type TS() {
+        Type type = null;
         boolean and = false;
-        FS();
+        type = FS();
         while (hasToken(Arrays.asList(Token.ASTERISK, Token.SLASH, Token.PERCENTAGE, Token.AND))) {
             if(symbol.getToken().equals(Token.AND)){
                 and = true;
             }
             matchToken(symbol.getToken());
 
-            if(and && !symbol.getType().equals(Type.BOOLEAN)){
+            type =  FS();
+
+            if(and && !type.equals(Type.BOOLEAN)){
                 AssertType.incompatibleTypes(lexer.getLines());
             }
-
-            FS();
         }
-
+        return  type;
     }
 
-    private void FS() {
+    private Type FS() {
+        Type type = null;
         if (compareToken(Token.NOT)) {
             matchToken(Token.NOT);
             if(Objects.nonNull(symbol.getType())  &&  !symbol.getType().equals(Type.BOOLEAN)){
                 AssertType.incompatibleTypes(getLexer().getLines());
             }
-            FS();
+            type = FS();
 
         } else if (compareToken(Token.OPENING_PARENTHESIS)) {
             matchToken(Token.OPENING_PARENTHESIS);
-            EXP();
+            type = EXP();
             matchToken(Token.CLOSING_PARENTHESIS);
         } else if (hasToken(Arrays.asList(Token.CONST, Token.TRUE, Token.FALSE))) {
-            V();
+            type = V();
         } else if (compareToken(Token.IDENTIFIER)) {
             if (symbol.getSize() > 0 && !symbol.getType().equals(Type.CHAR)){
                 matchToken(Token.IDENTIFIER);
                 matchToken(Token.OPENING_BRACKETS);
                 if(symbol.getType() == Type.INT){
-                    V();
+                   type = V();
                 }
                 else{
                     AssertType.incompatibleTypes(lexer.getLines());
@@ -947,13 +954,13 @@ class Parser {
 
             if (compareToken(Token.OPENING_BRACKETS)) {
                 matchToken(Token.OPENING_BRACKETS);
-                EXP();
+                type = EXP();
                 matchToken(Token.CLOSING_BRACKETS);
             }
         } else {
             AssertType.unexpectedToken(symbol.getLexeme(), lexer.getLines());
         }
-
+        return  type;
     }
 }
 
