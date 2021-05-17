@@ -285,6 +285,7 @@ class Parser {
     private List<String> asmList;
     private int memoryAdressParser;
     private StringBuilder asmLine = new StringBuilder();
+    private Type type = null;
 
     public Parser(Lexer lexer) throws IOException {
 
@@ -387,7 +388,6 @@ class Parser {
     private void D() {
         Symbol auxSymbol = new Symbol();
         Symbol symbolFromTable = null;
-        Type type = null;
 
         switch (symbol.getToken()) {
 
@@ -402,6 +402,9 @@ class Parser {
 
                 matchToken(Token.EQUAL);
 
+                if(symbol.getLexeme().contains("\"")){
+                    AssertType.incompatibleTypes(lexer.getLines());
+                }
 
                 type = V();
 
@@ -586,9 +589,9 @@ class Parser {
     private void READLN() {
         matchToken(Token.READLN);
         matchToken(Token.OPENING_PARENTHESIS);
-        checkIfHasBeenDeclared(symbol);
         //matchToken(Token.IDENTIFIER);
         if(compareToken(Token.IDENTIFIER)){
+            checkIfHasBeenDeclared(symbol);
             FS();
         }
         /*if (compareToken(Token.OPENING_BRACKETS)) {
@@ -656,6 +659,11 @@ class Parser {
         matchToken(Token.FOR);
         matchToken(Token.OPENING_PARENTHESIS);
 
+
+        if(compareToken(Token.IDENTIFIER)){
+            checkIfHasBeenDeclared(symbol);
+        }
+
         F();
 
         if((firstTime && compareToken(Token.SEMICOLON)) || compareToken(Token.SEMICOLON))  matchToken(Token.SEMICOLON);
@@ -690,6 +698,7 @@ class Parser {
         Symbol auxSecSymbol = new Symbol();
         boolean arrayElement = false;
 
+
         if(inFor == 0) checkIfHasBeenDeclared(symbol);
 
         checkIfIsNotFinal(symbol); // não é possível atribuir valor a symbols de classe final
@@ -701,13 +710,16 @@ class Parser {
 
         if (compareToken(Token.OPENING_BRACKETS)) {
             matchToken(Token.OPENING_BRACKETS);
-            if((auxSymbol.getType().equals(Type.INT) && auxSymbol.getSize() > 0) && (symbol.getType() != null && !symbol.getType().equals(Type.INT))){
-                AssertType.incompatibleTypes(getLexer().getLines());
-            }
+
             if(auxSymbol.getSize() > 0){
                 arrayElement = true;
             }
-            EXP();
+            type = EXP();
+
+            if(Objects.isNull(type) || !type.equals(Type.INT)){
+                AssertType.incompatibleTypes(getLexer().getLines());
+            }
+
             matchToken(Token.CLOSING_BRACKETS);
 
         }else if(auxSymbol.getSize() > 0 && !auxSymbol.getType().equals(Type.CHAR)){
@@ -722,7 +734,11 @@ class Parser {
 
         if(auxSymbol.getSize() > 0 ) checkIfArrayAndLimitIsNotExceeded(symbol, auxSymbol);
 
-        EXP();
+        if(compareToken(Token.IDENTIFIER) && Objects.isNull(symbol.getClasse())){
+            AssertType.identifierNotDeclared(lexer.getLines(), symbol.getLexeme());
+        }
+
+        type = EXP();
 
         if (inFor == 0 ) matchToken(Token.SEMICOLON);
 
@@ -810,7 +826,8 @@ class Parser {
          Symbol auxSymbol = symbol;
          Symbol auxSecSymbol = new Symbol();
          Token operation = null;
-         Type type = null;
+
+
 
          type = EXPS();
 
@@ -821,15 +838,15 @@ class Parser {
 
             auxSecSymbol = symbol;
 
-             if(auxSymbol.getType().equals(Type.CHAR)){
+             if(Objects.nonNull(auxSymbol.getType()) && auxSymbol.getType().equals(Type.CHAR)){
                  checkStringArrayOperator(auxSymbol, auxSecSymbol, operation);
              }
 
+             //Caso tenha comparador , retorna um tipo lógico
+             type = Type.BOOLEAN;
 
              EXPS();
 
-             //Caso tenha comparador , retorna um tipo lógico
-             type = Type.BOOLEAN;
          }
 
         return type;
@@ -852,17 +869,19 @@ class Parser {
     private Type EXPS() {
         Symbol firstTerm = new Symbol();
         Symbol secondTerm = new Symbol();
-        Type type = null;
+
         boolean orOperation = false;
         boolean sign = false;
+
         if (compareToken(Token.MINUS_SIGN) || compareToken(Token.PLUS_SIGN)) {
             sign = true;
             matchToken(symbol.getToken());
         }
+
         firstTerm = symbol;
 
         if(sign){
-            if(!symbol.getType().equals(Type.INT)){
+            if(Objects.isNull(symbol.getType()) || !symbol.getType().equals(Type.INT)){
                 AssertType.incompatibleTypes(lexer.getLines());
             }
         }
@@ -871,31 +890,25 @@ class Parser {
         while (hasToken(Arrays.asList(Token.PLUS_SIGN, Token.MINUS_SIGN, Token.OR))) {
             if(symbol.getToken().equals(Token.OR)){
                orOperation = true;
+
             }
             matchToken(symbol.getToken());
+            TS();
             if(orOperation){
                 secondTerm = symbol;
-                checkIfTermsAreLogicType(firstTerm, secondTerm );
+                checkIfCompatibleType(firstTerm, secondTerm );
             }
-            type = TS();
         }
         return type;
     }
 
-    private void checkIfTermsAreLogicType(Symbol firstTerm, Symbol secondTerm) {
-        if(Objects.nonNull(firstTerm.getType()) && Objects.nonNull(secondTerm.getType())){
-            if(!firstTerm.getType().equals(Type.BOOLEAN) && !secondTerm.getType().equals(Type.BOOLEAN)){
-                AssertType.incompatibleTypes(lexer.getLines());
-            }
-        }
-    }
 
     private void F() {
-            if(compareToken(Token.SEMICOLON)){
-                firstTime = true;
-            }else {
-                firstTime = false;
-            }
+        if(compareToken(Token.SEMICOLON)){
+               firstTime = true;
+           }else {
+            firstTime = false;
+        }
         C();
         while (compareToken(Token.COMMA)) {
             matchToken(Token.COMMA);
@@ -906,9 +919,9 @@ class Parser {
     }
 
     private Type TS() {
-        Type type = null;
         boolean and = false;
         type = FS();
+
         while (hasToken(Arrays.asList(Token.ASTERISK, Token.SLASH, Token.PERCENTAGE, Token.AND))) {
             if(symbol.getToken().equals(Token.AND)){
                 and = true;
@@ -925,7 +938,7 @@ class Parser {
     }
 
     private Type FS() {
-        Type type = null;
+
         if (compareToken(Token.NOT)) {
             matchToken(Token.NOT);
             if(Objects.nonNull(symbol.getType())  &&  !symbol.getType().equals(Type.BOOLEAN)){
@@ -940,6 +953,7 @@ class Parser {
         } else if (hasToken(Arrays.asList(Token.CONST, Token.TRUE, Token.FALSE))) {
             type = V();
         } else if (compareToken(Token.IDENTIFIER)) {
+            checkIfHasBeenDeclared(symbol);
             if (symbol.getSize() > 0 && !symbol.getType().equals(Type.CHAR)){
                 matchToken(Token.IDENTIFIER);
                 if(compareToken(Token.OPENING_BRACKETS)) matchToken(Token.OPENING_BRACKETS);
@@ -959,6 +973,9 @@ class Parser {
             if (compareToken(Token.OPENING_BRACKETS)) {
                 matchToken(Token.OPENING_BRACKETS);
                 type = EXP();
+                if(Objects.isNull(type) || !type.equals(Type.INT)){
+                    AssertType.incompatibleTypes(lexer.getLines());
+                }
                 matchToken(Token.CLOSING_BRACKETS);
             }
         } else {
