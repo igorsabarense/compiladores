@@ -705,11 +705,12 @@ class Parser {
         matchToken(Token.IDENTIFIER);
 
         if (compareToken(Token.OPENING_BRACKETS)) {
+
             matchToken(Token.OPENING_BRACKETS);
 
             type = EXP();
 
-            if(Objects.isNull(type) || !type.equals(Type.INT)){
+            if(auxSymbol.getSize() == 0 || Objects.isNull(type) || !type.equals(Type.INT)){
                 AssertType.incompatibleTypes(getLexer().getLines());
             }
 
@@ -732,6 +733,7 @@ class Parser {
         }
 
         type = EXP();
+
         if(auxSecSymbol.getSize() > 0 && type != Type.INT){
             AssertType.incompatibleTypes(lexer.getLines());
         }
