@@ -592,6 +592,7 @@ class Parser {
         //matchToken(Token.IDENTIFIER);
         if(compareToken(Token.IDENTIFIER)){
             checkIfHasBeenDeclared(symbol);
+            checkIfIsNotFinal(symbol);
             type = AB();
         }
         /*if (compareToken(Token.OPENING_BRACKETS)) {
@@ -818,6 +819,9 @@ class Parser {
             auxSecSymbol = symbol;
 
              if(Objects.nonNull(auxSymbol.getType()) && auxSymbol.getType().equals(Type.CHAR)){
+                 if(!auxSymbol.getType().equals(auxSecSymbol.getType())){
+                     AssertType.incompatibleTypes(lexer.getLines());
+                 }
                  checkStringArrayOperator(auxSymbol, auxSecSymbol, operation);
              }
 
