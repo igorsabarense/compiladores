@@ -592,7 +592,7 @@ class Parser {
         //matchToken(Token.IDENTIFIER);
         if(compareToken(Token.IDENTIFIER)){
             checkIfHasBeenDeclared(symbol);
-            FS();
+            type = AB();
         }
         /*if (compareToken(Token.OPENING_BRACKETS)) {
             matchToken(Token.OPENING_BRACKETS);
@@ -686,7 +686,6 @@ class Parser {
                 } while (hasToken(Arrays.asList(Token.SEMICOLON, Token.FOR, Token.IDENTIFIER, Token.IF, Token.READLN, Token.WRITE, Token.WRITELN)));
                 matchToken(Token.CLOSING_BRACES);
             }
-
         } else {
             C();
         }
@@ -696,24 +695,18 @@ class Parser {
     private void ATTR() {
         Symbol auxSymbol = new Symbol();
         Symbol auxSecSymbol = new Symbol();
-        boolean arrayElement = false;
 
 
         if(inFor == 0) checkIfHasBeenDeclared(symbol);
 
-        checkIfIsNotFinal(symbol); // não é possível atribuir valor a symbols de classe final
+        checkIfIsNotFinal(symbol); //não é possível atribuir valor a symbols de classe final
 
         auxSymbol = symbol;
-
         matchToken(Token.IDENTIFIER);
-
 
         if (compareToken(Token.OPENING_BRACKETS)) {
             matchToken(Token.OPENING_BRACKETS);
 
-            if(auxSymbol.getSize() > 0){
-                arrayElement = true;
-            }
             type = EXP();
 
             if(Objects.isNull(type) || !type.equals(Type.INT)){
@@ -727,37 +720,23 @@ class Parser {
         }
 
         matchToken(Token.ATTRIBUTION);
-
-        specialCaseArrayCharIncompatibleType(auxSymbol, arrayElement);
-
+        auxSecSymbol = symbol;
         checkIfCompatibleType( auxSymbol ,symbol );
 
-        if(auxSymbol.getSize() > 0 ) checkIfArrayAndLimitIsNotExceeded(symbol, auxSymbol);
+        if(auxSymbol.getSize() > 0 ) {
+            checkIfArrayAndLimitIsNotExceeded(symbol, auxSymbol);
+        }
 
         if(compareToken(Token.IDENTIFIER) && Objects.isNull(symbol.getClasse())){
             AssertType.identifierNotDeclared(lexer.getLines(), symbol.getLexeme());
         }
 
         type = EXP();
-
-        if (inFor == 0 ) matchToken(Token.SEMICOLON);
-
-    }
-
-    private void specialCaseArrayCharIncompatibleType(Symbol auxSymbol, boolean arrayElement) {
-
-        if(auxSymbol.getSize() == 0 && symbol.getSize() > 0 && !arrayElement && !symbol.getLexeme().contains("\"")){
+        if(auxSecSymbol.getSize() > 0 && type != Type.INT){
             AssertType.incompatibleTypes(lexer.getLines());
         }
+        if (inFor == 0 ) matchToken(Token.SEMICOLON);
 
-        if(!symbol.getLexeme().contains("\"")){
-            if((Objects.nonNull(symbol.getType()) && Objects.nonNull(auxSymbol.getType())
-                    && (auxSymbol.getSize() > 0 && auxSymbol.getType().equals(Type.CHAR)))){
-                if(symbol.getSize() == 0 && !arrayElement){
-                    AssertType.incompatibleTypes(lexer.getLines());
-                }
-            }
-        }
     }
 
     private void checkIfArrayAndLimitIsNotExceeded(Symbol symbol, Symbol auxSymbol) {
@@ -826,8 +805,6 @@ class Parser {
          Symbol auxSymbol = symbol;
          Symbol auxSecSymbol = new Symbol();
          Token operation = null;
-
-
 
          type = EXPS();
 
@@ -953,35 +930,38 @@ class Parser {
         } else if (hasToken(Arrays.asList(Token.CONST, Token.TRUE, Token.FALSE))) {
             type = V();
         } else if (compareToken(Token.IDENTIFIER)) {
-            checkIfHasBeenDeclared(symbol);
-            if (symbol.getSize() > 0 && !symbol.getType().equals(Type.CHAR)){
-                matchToken(Token.IDENTIFIER);
-                if(compareToken(Token.OPENING_BRACKETS)) matchToken(Token.OPENING_BRACKETS);
-                else  AssertType.incompatibleTypes(lexer.getLines());
-                if(symbol.getType() == Type.INT){
-                   type = V();
-                }
-                else{
-                    AssertType.incompatibleTypes(lexer.getLines());
-                }
-                matchToken(Token.CLOSING_BRACKETS);
-            }
-            else{
-                matchToken(Token.IDENTIFIER);
-            }
-
-            if (compareToken(Token.OPENING_BRACKETS)) {
-                matchToken(Token.OPENING_BRACKETS);
-                type = EXP();
-                if(Objects.isNull(type) || !type.equals(Type.INT)){
-                    AssertType.incompatibleTypes(lexer.getLines());
-                }
-                matchToken(Token.CLOSING_BRACKETS);
-            }
+            type = AB();
         } else {
             AssertType.unexpectedToken(symbol.getLexeme(), lexer.getLines());
         }
         return  type;
+    }
+    private Type AB(){
+        checkIfHasBeenDeclared(symbol);
+        if (symbol.getSize() > 0 && !symbol.getType().equals(Type.CHAR)){
+            matchToken(Token.IDENTIFIER);
+            if(compareToken(Token.OPENING_BRACKETS)) matchToken(Token.OPENING_BRACKETS);
+            else  AssertType.incompatibleTypes(lexer.getLines());
+            if(symbol.getType() == Type.INT){
+                type = EXP();
+            }
+            else{
+                AssertType.incompatibleTypes(lexer.getLines());
+            }
+            matchToken(Token.CLOSING_BRACKETS);
+        }
+        else{
+            matchToken(Token.IDENTIFIER);
+        }
+        if (compareToken(Token.OPENING_BRACKETS)) {
+            matchToken(Token.OPENING_BRACKETS);
+            type = EXP();
+            if(Objects.isNull(type) || !type.equals(Type.INT)){
+                AssertType.incompatibleTypes(lexer.getLines());
+            }
+            matchToken(Token.CLOSING_BRACKETS);
+        }
+        return type;
     }
 }
 
