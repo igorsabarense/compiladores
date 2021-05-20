@@ -937,6 +937,7 @@ class Parser {
         return  type;
     }
     private Type AB(){
+        Symbol auxSymbol = symbol;
         checkIfHasBeenDeclared(symbol);
         if (symbol.getSize() > 0 && !symbol.getType().equals(Type.CHAR)){
             matchToken(Token.IDENTIFIER);
@@ -953,7 +954,10 @@ class Parser {
         else{
             matchToken(Token.IDENTIFIER);
         }
+
         if (compareToken(Token.OPENING_BRACKETS)) {
+            if(auxSymbol.getSize() == 0) AssertType.incompatibleTypes(lexer.getLines());
+
             matchToken(Token.OPENING_BRACKETS);
             type = EXP();
             if(Objects.isNull(type) || !type.equals(Type.INT)){
