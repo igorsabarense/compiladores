@@ -592,6 +592,7 @@ class Parser {
         //matchToken(Token.IDENTIFIER);
         if(compareToken(Token.IDENTIFIER)){
             checkIfHasBeenDeclared(symbol);
+            checkIfIsNotFinal(symbol);
             type = AB();
         }
         /*if (compareToken(Token.OPENING_BRACKETS)) {
@@ -705,11 +706,12 @@ class Parser {
         matchToken(Token.IDENTIFIER);
 
         if (compareToken(Token.OPENING_BRACKETS)) {
+
             matchToken(Token.OPENING_BRACKETS);
 
             type = EXP();
 
-            if(Objects.isNull(type) || !type.equals(Type.INT)){
+            if(auxSymbol.getSize() == 0 || Objects.isNull(type) || !type.equals(Type.INT)){
                 AssertType.incompatibleTypes(getLexer().getLines());
             }
 
@@ -732,6 +734,7 @@ class Parser {
         }
 
         type = EXP();
+
         if(auxSecSymbol.getSize() > 0 && type != Type.INT){
             AssertType.incompatibleTypes(lexer.getLines());
         }
@@ -816,6 +819,9 @@ class Parser {
             auxSecSymbol = symbol;
 
              if(Objects.nonNull(auxSymbol.getType()) && auxSymbol.getType().equals(Type.CHAR)){
+                 if(!auxSymbol.getType().equals(auxSecSymbol.getType())){
+                     AssertType.incompatibleTypes(lexer.getLines());
+                 }
                  checkStringArrayOperator(auxSymbol, auxSecSymbol, operation);
              }
 
@@ -937,6 +943,7 @@ class Parser {
         return  type;
     }
     private Type AB(){
+        Symbol auxSymbol = symbol;
         checkIfHasBeenDeclared(symbol);
         if (symbol.getSize() > 0 && !symbol.getType().equals(Type.CHAR)){
             matchToken(Token.IDENTIFIER);
@@ -953,7 +960,10 @@ class Parser {
         else{
             matchToken(Token.IDENTIFIER);
         }
+
         if (compareToken(Token.OPENING_BRACKETS)) {
+            if(auxSymbol.getSize() == 0) AssertType.incompatibleTypes(lexer.getLines());
+
             matchToken(Token.OPENING_BRACKETS);
             type = EXP();
             if(Objects.isNull(type) || !type.equals(Type.INT)){
