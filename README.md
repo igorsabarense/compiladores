@@ -26,25 +26,30 @@ T -> TIPO
 V -> CONSTANTE
 EXP -> EXPRESSAO
 
-S -> {D} main "{" {C} "}" EOF
+S -> {D} main "{" {C} "}" fim_de_arquivo
 
 
-D -> T id[{,id} | = V | ["[const]"] |:= [+] V ]; | final id = V;
+D -> T id({,id} | = V | ["[const]"]); | final id = V  ;
 T -> int | char | boolean
 V -> [-] const | const_hexa | (TRUE | FALSE)
 C -> ; | ATTR | FOR | IF | WRITE | READLN
 F -> C{,C}
 
-ATTR ->  id["["EXP"]"] := EXP[;]
+ATTR ->  id["["EXP"]"] := EXP
 FOR ->  for "(" [F] ; EXP ; [F] ")" ( C | "{" {C;} "}" )
 IF ->   if "(" EXP ")" then (C| "{" {C} "}") [else (C| "{" {C;} "}")]
-READLN ->  readln"(" id["["EXP]"]" ")"[;]
-WRITE -> write"("EXP{,EXP}")"[;] |  writeln"("EXP{,EXP}")"[;]
+READLN ->  readln"("AB")"
+WRITE -> write"("EXP{,EXP}")" |  writeln"("EXP{,EXP}")"
+
+
 
 EXP -> EXPS [(= | <> | < | > | <= | >= ) EXPS]
-EXPS -> [+|-] TS {( + | - | or ) TS}
+EXPS -> [+|-] TS { + | - | or ) TS}
 TS -> FS {(* | / | % | and ) FS}
-FS -> not FS | "("EXP")" | V | id["["EXP"]"]
+FS -> not FS | "("EXP")" | V | AB
+AB -> id["["EXP"]"]
+
+
 
 
 
