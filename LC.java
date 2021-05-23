@@ -346,7 +346,9 @@ class Parser {
         return symbol.getType().equals(type);
     }
 
-    // S -> {D} main { "{" C "}" }
+    /**
+     * S -> {D} main { "{" C "}" }
+     */
     public void S() {
 
         asmList.add("sseg SEGMENT STACK ;início seg. pilha");
@@ -384,7 +386,10 @@ class Parser {
         matchToken(Token.END_OF_FILE);
 
     }
-    //D -> T id({,id} | = V | ["[V]"]); | final id = V;
+
+    /**
+     * D -> T id({,id} | = V | ["[V]"]); | final id = V;
+     */
     private void D() {
         Symbol auxSymbol = new Symbol();
         Symbol symbolFromTable = null;
@@ -503,11 +508,16 @@ class Parser {
     }
 
 
-    //T-> int | boolean | char
+    /**
+     * T-> int | boolean | char
+     */
     private void T(Token token) {
         matchToken(token);
     }
 
+    /**
+     * V -> [-] const | const_hexa | (TRUE | FALSE)
+     */
     private Type V() {
         Type type = null;
         if (compareToken(Token.MINUS_SIGN)) {
@@ -548,6 +558,10 @@ class Parser {
         return type;
     }
     private int inFor = 0;
+
+    /**
+     * C -> ; | ATTR | FOR | IF | WRITE | READLN
+     */
     private void C() {
         if (compareToken(Token.SEMICOLON)) {
             matchToken(Token.SEMICOLON);
@@ -568,6 +582,9 @@ class Parser {
 
     }
 
+    /**
+     * WRITE -> write"("EXP{,EXP}")" |  writeln"("EXP{,EXP}")"
+     */
     private void WRITE() {
         matchToken(symbol.getToken());
         matchToken(Token.OPENING_PARENTHESIS);
@@ -586,6 +603,9 @@ class Parser {
 
     }
 
+    /**
+     * READLN ->  readln"("AB")"
+     */
     private void READLN() {
         matchToken(Token.READLN);
         matchToken(Token.OPENING_PARENTHESIS);
@@ -614,6 +634,9 @@ class Parser {
 
     }
 
+    /**
+     * IF ->   if "(" EXP ")" then (C| "{" {C} "}") [else (C| "{" {C;} "}")]
+     */
     private void IF() {
         matchToken(Token.IF);
         matchToken(Token.OPENING_PARENTHESIS);
@@ -654,6 +677,10 @@ class Parser {
 
 
     private boolean firstTime = false;
+
+    /**
+     * FOR ->  for "(" [F] ; EXP ; [F] ")" ( C | "{" {C;} "}" )
+     */
     private void FOR() {
 
         inFor++;
@@ -693,6 +720,9 @@ class Parser {
         inFor--;
     }
 
+    /**
+     * ATTR ->  id["["EXP"]"] := EXP
+     */
     private void ATTR() {
         Symbol auxSymbol = new Symbol();
         Symbol auxSecSymbol = new Symbol();
@@ -805,6 +835,9 @@ class Parser {
         }
     }
 
+    /**
+     * EXP -> EXPS [(= | <> | < | > | <= | >= ) EXPS]
+     */
     private Type EXP() {
          Symbol auxSymbol = symbol;
          Symbol auxSecSymbol = new Symbol();
@@ -850,6 +883,9 @@ class Parser {
 
     }
 
+    /**
+     * EXPS -> [+|-] TS { + | - | or ) TS}
+     */
     private Type EXPS() {
         Symbol firstTerm = new Symbol();
         Symbol secondTerm = new Symbol();
@@ -886,7 +922,9 @@ class Parser {
         return type;
     }
 
-
+    /**
+     * F -> C{,C}
+     */
     private void F() {
         if(compareToken(Token.SEMICOLON)){
                firstTime = true;
@@ -902,6 +940,9 @@ class Parser {
 
     }
 
+    /**
+     * TS -> FS {(* | / | % | and ) FS}
+     */
     private Type TS() {
         boolean and = false;
         type = FS();
@@ -921,6 +962,9 @@ class Parser {
         return  type;
     }
 
+    /**
+     * FS -> not FS | "("EXP")" | V | AB
+     */
     private Type FS() {
 
         if (compareToken(Token.NOT)) {
@@ -943,6 +987,10 @@ class Parser {
         }
         return  type;
     }
+
+    /**
+     * AB -> id["["EXP"]"]
+     */
     private Type AB(){
         Symbol auxSymbol = symbol;
         checkIfHasBeenDeclared(symbol);
@@ -1369,6 +1417,11 @@ class Lexer {
         }
     }
 
+    /**
+     * Faz o teste se existe o char corrente nos nossos simbolos
+     * @return true, caso exista
+     * @return false, caso nao exista
+     */
     private boolean checkSymbols(char currentChar) {
         String str = String.valueOf(currentChar);
         if (symbols.contains(str.toString())) {
@@ -1377,6 +1430,9 @@ class Lexer {
         return false;
     }
 
+    /**
+     * Faz a leitura do caractere
+     */
     private void readCharacter() {
         try {
             if (previousChar == null) {
@@ -1393,6 +1449,9 @@ class Lexer {
         }
     }
 
+    /**
+     * Retorna o caractere corrente
+     */
     private void returnChar() {
         previousChar = currentChar;
         CURRENT_STATE = FINAL_STATE;
@@ -1443,41 +1502,78 @@ class AssertType {
         System.exit(1);
     }
 
+    /**
+     * Retorna lexema nao identificado
+     * @param lexeme -> recebe o lexema corrente
+     * @param lines -> recebe a linha do erro
+     */
     public static void lexemeNotIdentified(String lexeme, int lines) {
         System.out.printf("%d\nlexema nao identificado [%s].", lines, lexeme);
         System.exit(1);
     }
 
+    /**
+     * Retorna fim de arquivo nao esperado
+     * @param lines -> recebe a linha do erro
+     */
     public static void unexpectedEOF(int lines) {
         System.out.printf("%d\nfim de arquivo nao esperado.", lines);
         System.exit(1);
     }
 
+    /**
+     * Retorna token nao esperado caso seja lido algo diferente do token esperado
+     * @param lexeme -> recebe o lexema corrente
+     * @param lines -> recebe a linha do erro
+     */
     public static void unexpectedToken(String lexeme, int lines) {
         System.out.printf("%d\ntoken nao esperado [%s].", lines, lexeme);
         System.exit(1);
     }
 
+    /**
+     * Retorna identificador ja declarado caso tente declarar dois ou mais identificadores iguais
+     * @param lexeme -> recebe o lexema corrente
+     * @param lines -> recebe a linha do erro
+     */
     public static void identifierAlreadyInUse(int lines, String lexeme) {
         System.out.printf("%d\nidentificador ja declarado [%s].", lines, lexeme);
         System.exit(1);
     }
 
+    /**
+     * Retorna tamanho do vetor excede o tamanho maximo permitido
+     * @param lines -> recebe a linha do erro
+     */
     public static void sizeExceedsLimitsOfArray(int lines) {
         System.out.printf("%d\ntamanho do vetor excede o maximo permitido.", lines);
         System.exit(1);
     }
 
+    /**
+     * Retorna identificador nao declarado caso tente usar um identificador nao declarado
+     * @param lexeme -> recebe o lexema corrente
+     * @param lines -> recebe a linha do erro
+     */
     public static void identifierNotDeclared(int lines, String lexeme) {
         System.out.printf("%d\nidentificador nao declarado [%s].", lines, lexeme);
         System.exit(1);
     }
 
+    /**
+     * Retorna classe de identificador incompativel caso identificador declarado com a classe errada
+     * @param lexeme -> recebe o lexema corrente
+     * @param lines -> recebe a linha do erro
+     */
     public static void incompatibleIdentifierClass(int lines, String lexeme) {
         System.out.printf("%d\nclasse de identificador incompativel [%s].", lines, lexeme);
         System.exit(1);
     }
 
+    /**
+     * Retorna tipos incompativeis
+     * @param lines -> recebe a linha do erro
+     */
     public static void incompatibleTypes(int lines) {
         System.out.printf("%d\ntipos incompativeis.", lines);
         System.exit(1);
