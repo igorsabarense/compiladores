@@ -1434,8 +1434,8 @@ class AssertType {
 
     /**
      * Retorna fim de arquivo não esperado ou caractere invalido caso caractere não seja aceito no nosso alfabeto
-     * @param c
-     * @param lines
+     * @param c -> recebe o char corrente
+     * @param lines -> recebe a linha do erro
      */
     public static void printInvalidChar(char c, int lines) {
         String errorMessage = c == EOF ? "%d\nfim de arquivo nao esperado." : "%d\ncaractere invalido.";
