@@ -792,6 +792,7 @@ class Parser {
 
     }
 
+
     private void checkIfIsNotFinal(Symbol symbol) {
         if(Objects.nonNull(symbol.getClasse()) && symbol.getClasse().equals(Classe.CLASSE_CONST)){
             AssertType.incompatibleIdentifierClass(lexer.getLines(), symbol.getLexeme());
@@ -1431,6 +1432,11 @@ class AssertType {
         return matcher.matches();
     }
 
+    /**
+     * Retorna fim de arquivo não esperado ou caractere invalido caso caractere não seja aceito no nosso alfabeto
+     * @param c
+     * @param lines
+     */
     public static void printInvalidChar(char c, int lines) {
         String errorMessage = c == EOF ? "%d\nfim de arquivo nao esperado." : "%d\ncaractere invalido.";
         System.out.printf(errorMessage, lines);
